@@ -49,10 +49,16 @@ export default function App() {
     section?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  // Always start from top on refresh so intro reveals Hero first.
+  useEffect(() => {
+    const container = containerRef.current
+    if (container) container.scrollTo({ top: 0, behavior: 'auto' })
+  }, [])
+
   return (
     <>
       {/* Intro overlay — sits on top of content, content always in DOM */}
-      <IntroSequence />
+      <IntroSequence onComplete={() => scrollTo('hero')} />
 
       {/* Custom cursor (desktop only) */}
       <CustomCursor />

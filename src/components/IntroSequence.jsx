@@ -4,17 +4,9 @@ import './IntroSequence.css'
 const WORDS = ['NOT', 'JUST', 'A', 'PORTFOLIO']
 
 export default function IntroSequence({ onComplete }) {
-  // Check session flag synchronously so there's no flash
-  const alreadyShown = sessionStorage.getItem('intro_shown') === 'true'
-  const [phase, setPhase] = useState(alreadyShown ? 'done' : 'enter')
+  const [phase, setPhase] = useState('enter')
 
   useEffect(() => {
-    // Already shown this session: fire callback immediately, no overlay
-    if (alreadyShown) {
-      onComplete?.()
-      return
-    }
-
     // Phase timeline (ms)
     const enterDuration = 150 * WORDS.length + 320 // stagger + last anim
     const holdDuration  = 600
@@ -22,7 +14,6 @@ export default function IntroSequence({ onComplete }) {
 
     const holdTimer = setTimeout(() => setPhase('exit'), enterDuration + holdDuration)
     const doneTimer = setTimeout(() => {
-      sessionStorage.setItem('intro_shown', 'true')
       setPhase('done')
       onComplete?.()
     }, enterDuration + holdDuration + exitDuration)
@@ -31,7 +22,7 @@ export default function IntroSequence({ onComplete }) {
       clearTimeout(holdTimer)
       clearTimeout(doneTimer)
     }
-  }, [])
+  }, [onComplete])
 
   if (phase === 'done') return null
 

@@ -19,6 +19,16 @@ BEHAVIOR:
 const OPENING_MSG = "hey, what's up 👋 i'm gannu's ai twin — i know his projects, stack, and how he thinks. what do you wanna know?"
 
 const HIRE_KEYWORDS = /\b(hire|hiring|intern|internship|collab|collaborate|collaboration|work|job|opportunity|recruit|team)\b/i
+const CHAT_STORAGE_KEY = 'gannu_chat_messages'
+const THREAD_STORAGE_KEY = 'gannu_chat_thread_id'
+const LEAD_STORAGE_KEY = 'gannu_chat_lead_state'
+
+function createThreadId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `thread_${Date.now()}`
+}
 
 function TypingIndicator() {
   return (
@@ -31,13 +41,24 @@ function TypingIndicator() {
 }
 
 export default function ChatPanel({ active }) {
-  const [messages,   setMessages]   = useState([])
+  const [messages,   setMessages]   = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_STORAGE_KEY)
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
   const [input,      setInput]      = useState('')
   const [loading,    setLoading]    = useState(false)
   const [openedOnce, setOpenedOnce] = useState(false)
-  const [leadState,  setLeadState]  = useState(null) // null | 'collecting' | 'sent'
+  const [leadState,  setLeadState]  = useState(() => {
+    const saved = localStorage.getItem(LEAD_STORAGE_KEY)
+    return saved || null
+  }) // null | 'collecting' | 'sent'
   const [leadName,   setLeadName]   = useState('')
   const [leadEmail,  setLeadEmail]  = useState('')
+  const [threadId]   = useState(() => localStorage.getItem(THREAD_STORAGE_KEY) || createThreadId())
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -46,21 +67,30 @@ export default function ChatPanel({ active }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
+  useEffect(() => {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages))
+  }, [messages])
+
+  useEffect(() => {
+    localStorage.setItem(THREAD_STORAGE_KEY, threadId)
+  }, [threadId])
+
+  useEffect(() => {
+    if (leadState) localStorage.setItem(LEAD_STORAGE_KEY, leadState)
+    else localStorage.removeItem(LEAD_STORAGE_KEY)
+  }, [leadState])
+
   // Opening message when section snaps in (once per session)
   useEffect(() => {
     if (active && !openedOnce) {
       setOpenedOnce(true)
-      const flag = sessionStorage.getItem('chat_opened')
-      if (!flag) {
-        sessionStorage.setItem('chat_opened', 'true')
+      if (messages.length === 0) {
         setTimeout(() => {
           setMessages([{ role: 'assistant', content: OPENING_MSG }])
         }, 400)
-      } else {
-        setMessages([{ role: 'assistant', content: OPENING_MSG }])
       }
     }
-  }, [active, openedOnce])
+  }, [active, openedOnce, messages.length])
 
   const sendMessage = useCallback(async (userText) => {
     if (!userText.trim() || loading) return
@@ -102,7 +132,7 @@ export default function ChatPanel({ active }) {
         body: JSON.stringify({
           model: 'gpt-4.1-nano',
           messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: `${SYSTEM_PROMPT}\n\nPersistent thread ID: ${threadId}` },
             ...newMessages,
           ],
           stream: true,
