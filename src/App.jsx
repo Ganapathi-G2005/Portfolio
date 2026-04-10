@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 
 import IntroSequence       from './components/IntroSequence'
 import CustomCursor        from './components/CustomCursor'
@@ -43,11 +43,15 @@ export default function App() {
     return () => observers.forEach(o => o.disconnect())
   }, [])
 
-  // Scroll to a named section
-  const scrollTo = (id) => {
+  // Scroll to a named section (stable ref — passed to children / intro callback)
+  const scrollTo = useCallback((id) => {
     const section = document.getElementById(id)
     section?.scrollIntoView({ behavior: 'smooth' })
-  }
+  }, [])
+
+  const onIntroComplete = useCallback(() => {
+    scrollTo('hero')
+  }, [scrollTo])
 
   // Always start from top on refresh so intro reveals Hero first.
   useEffect(() => {
@@ -58,7 +62,7 @@ export default function App() {
   return (
     <>
       {/* Intro overlay — sits on top of content, content always in DOM */}
-      <IntroSequence onComplete={() => scrollTo('hero')} />
+      <IntroSequence onComplete={onIntroComplete} />
 
       {/* Custom cursor (desktop only) */}
       <CustomCursor />

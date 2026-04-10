@@ -1,11 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import './IntroSequence.css'
 
 const WORDS = ['NOT', 'JUST', 'A', 'PORTFOLIO']
 
 export default function IntroSequence({ onComplete }) {
   const [phase, setPhase] = useState('enter')
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
 
+  // Run intro once on mount. Do not depend on onComplete identity — an inline
+  // parent callback would retrigger this effect every render and repeatedly
+  // scroll to Hero.
   useEffect(() => {
     // Phase timeline (ms)
     const enterDuration = 150 * WORDS.length + 320 // stagger + last anim
@@ -15,14 +20,14 @@ export default function IntroSequence({ onComplete }) {
     const holdTimer = setTimeout(() => setPhase('exit'), enterDuration + holdDuration)
     const doneTimer = setTimeout(() => {
       setPhase('done')
-      onComplete?.()
+      onCompleteRef.current?.()
     }, enterDuration + holdDuration + exitDuration)
 
     return () => {
       clearTimeout(holdTimer)
       clearTimeout(doneTimer)
     }
-  }, [onComplete])
+  }, [])
 
   if (phase === 'done') return null
 
