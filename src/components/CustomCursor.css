@@ -1,0 +1,62 @@
+.cursor-main,
+.cursor-trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 10000;
+  will-change: transform;
+}
+
+/* Main cursor — 8×8 filled square */
+.cursor-main {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border: none;
+  transition: width 200ms var(--ease-out-expo),
+              height 200ms var(--ease-out-expo),
+              background 200ms,
+              border 200ms,
+              border-radius 200ms;
+}
+
+/* Trail — 4×4 dot */
+.cursor-trail {
+  width: 4px;
+  height: 4px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: opacity 200ms;
+}
+
+/* Hover state: 24×24 hollow square */
+.cursor-main.cursor--hover {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1.5px solid var(--accent);
+  transform-origin: center;
+  margin-top: -8px;
+  margin-left: -8px;
+}
+
+/* Text cursor state: thin bar */
+.cursor-main.cursor--text {
+  width: 2px;
+  height: 20px;
+  background: var(--accent);
+  border-radius: 1px;
+  margin-top: -6px;
+}
+
+.cursor-trail.trail--hidden {
+  opacity: 0;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor-main,
+  .cursor-trail {
+    display: none;
+  }
+}

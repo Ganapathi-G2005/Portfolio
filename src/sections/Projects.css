@@ -1,0 +1,120 @@
+.projects {
+  background: var(--bg);
+  padding-top: var(--nav-h);
+}
+
+.projects-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 32px 80px;
+  gap: var(--sp-5);
+}
+
+/* Entrance */
+.projects .animate-child {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 600ms var(--ease-out-expo), transform 600ms var(--ease-out-expo);
+}
+.projects--visible .animate-child {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.projects-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.projects-carousel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 0;
+}
+
+/* ── Mobile carousel ── */
+.mobile-carousel-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mobile-carousel-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  padding: 20px 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mobile-carousel-track::-webkit-scrollbar { display: none; }
+
+.mcard {
+  flex-shrink: 0;
+  width: 85vw;
+  scroll-snap-align: center;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  height: 260px;
+  border-radius: 0;
+  transition: border-color 300ms, box-shadow 300ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mcard--active {
+  border-color: var(--border-loud);
+  box-shadow: 6px 6px 0 var(--accent);
+}
+.mcard-inner {
+  text-align: center;
+}
+.mcard-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 28px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+.mcard-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+}
+
+/* Dots (shared with cylinder) */
+.cylinder-dots {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  justify-content: center;
+}
+.cylinder-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  background: var(--border);
+  border: none;
+  cursor: pointer;
+  transition: background 200ms;
+}
+.cylinder-dot--active { background: var(--accent); }
+
+/* Responsive */
+@media (max-width: 767px) {
+  .projects-inner {
+    padding: 20px var(--sp-5);
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .projects-inner {
+    padding: 32px var(--sp-7);
+  }
+}

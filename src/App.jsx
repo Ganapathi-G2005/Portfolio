@@ -1,0 +1,81 @@
+import { useRef, useState, useEffect } from 'react'
+
+import IntroSequence       from './components/IntroSequence'
+import CustomCursor        from './components/CustomCursor'
+import Nav                 from './components/Nav'
+import FloatingChatButton  from './components/FloatingChatButton'
+import Hero                from './sections/Hero'
+import Skills              from './sections/Skills'
+import Projects            from './sections/Projects'
+import Chat                from './sections/Chat'
+import Contact             from './sections/Contact'
+
+import { useScrollNav }    from './hooks/useScrollNav'
+
+const SECTIONS = ['hero', 'skills', 'projects', 'chat', 'contact']
+
+export default function App() {
+  const containerRef    = useRef(null)
+  const [activeSection, setActiveSection] = useState('hero')
+
+  // Keyboard arrow navigation
+  useScrollNav(containerRef)
+
+  // Track active section via IntersectionObserver (threshold 0.6)
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const observers = SECTIONS.map((id) => {
+      const el = document.getElementById(id)
+      if (!el) return null
+
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveSection(id)
+        },
+        { root: container, threshold: 0.6 }
+      )
+      obs.observe(el)
+      return obs
+    }).filter(Boolean)
+
+    return () => observers.forEach(o => o.disconnect())
+  }, [])
+
+  // Scroll to a named section
+  const scrollTo = (id) => {
+    const section = document.getElementById(id)
+    section?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  return (
+    <>
+      {/* Intro overlay — sits on top of content, content always in DOM */}
+      <IntroSequence />
+
+      {/* Custom cursor (desktop only) */}
+      <CustomCursor />
+
+      {/* Sticky nav */}
+      <Nav containerRef={containerRef} activeSection={activeSection} />
+
+      {/* Main scroll container — always visible; intro overlay covers it */}
+      <main
+        className="scroll-container"
+        ref={containerRef}
+        id="scroll-container"
+        role="main"
+      >
+        <Hero    onScrollTo={scrollTo} />
+        <Skills  />
+        <Projects />
+        <Chat    />
+        <Contact />
+      </main>
+
+      {/* Floating chat button */}
+      <FloatingChatButton onScrollTo={scrollTo} activeSection={activeSection} />
+    </>
+  )
+}
