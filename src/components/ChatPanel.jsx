@@ -26,7 +26,6 @@ INTERESTS (outside tech): Reading books, travelling, football, badminton, buildi
 BEHAVIOR:
 - Keep replies concise unless the question genuinely needs depth
 - Be helpful and friendly — like talking to a real person, not a chatbot
-- If someone wants to hire, collaborate, or intern with Gannu, respond warmly and naturally, then ask for their name and email so Gannu can follow up. Say something like: "That's great to hear — drop your name and email and I'll make sure Gannu gets back to you."
 - Never make up projects or experiences Gannu hasn't done
 - Tone: conversational and slightly professional — friendly, not formal; fun, not goofy
 
@@ -35,22 +34,20 @@ OUTPUT FORMAT (for the chat UI):
 - Use **bold** / *italic* when useful, bullet or numbered lists for sequences, fenced code blocks for multi-line code or commands, and inline \`backticks\` for short snippets, file names, or identifiers.
 - Do not wrap the whole answer in a single fenced code block unless the entire reply is literally code.`
 
-const OPENING_MSG = "hey, what's up 👋 i'm gannu's ai twin — i know his projects, stack, and how he thinks. what do you wanna know?"
+const OPENING_MSG = "hey, what's up\u{1F44B} i'm gannu's ai twin — i know his projects, stack, and how he thinks. what do you wanna know?"
 
-const HIRE_KEYWORDS = /\b(hire|hiring|intern|internship|collab|collaborate|collaboration|work|job|opportunity|recruit|team)\b/i
 const CHAT_STORAGE_KEY = 'gannu_chat_messages'
 const THREAD_STORAGE_KEY = 'gannu_chat_thread_id'
-const LEAD_STORAGE_KEY = 'gannu_chat_lead_state'
 const CHAT_STORAGE_VERSION_KEY = 'gannu_chat_storage_v'
-/** Bump this to wipe persisted messages / thread / lead for all visitors once. */
-const CHAT_STORAGE_VERSION = '2'
+/** Bump this to wipe persisted messages / thread for all visitors once. */
+const CHAT_STORAGE_VERSION = '3'
 
 function applyChatStorageMigration() {
   try {
     if (localStorage.getItem(CHAT_STORAGE_VERSION_KEY) === CHAT_STORAGE_VERSION) return
     localStorage.removeItem(CHAT_STORAGE_KEY)
     localStorage.removeItem(THREAD_STORAGE_KEY)
-    localStorage.removeItem(LEAD_STORAGE_KEY)
+    localStorage.removeItem('gannu_chat_lead_state')
     localStorage.setItem(CHAT_STORAGE_VERSION_KEY, CHAT_STORAGE_VERSION)
   } catch {
     /* ignore private mode / quota */
@@ -105,36 +102,23 @@ export default function ChatPanel({ active }) {
   const [replyStreaming, setReplyStreaming] = useState(false)
   const replyStreamingRef = useRef(false)
   const [openedOnce, setOpenedOnce] = useState(false)
-  const [leadState,  setLeadState]  = useState(() => {
-    const saved = localStorage.getItem(LEAD_STORAGE_KEY)
-    return saved || null
-  }) // null | 'collecting' | 'sent'
-  const [leadSubmitting, setLeadSubmitting] = useState(false)
-  const [leadError, setLeadError] = useState('')
-  const [leadName,   setLeadName]   = useState('')
-  const [leadEmail,  setLeadEmail]  = useState('')
   const [threadId, setThreadId]   = useState(() => localStorage.getItem(THREAD_STORAGE_KEY) || createThreadId())
   const messagesListRef = useRef(null)
   const inputRef = useRef(null)
 
   const clearChatHistory = useCallback(() => {
-    if (loading || leadSubmitting || replyStreamingRef.current) return
+    if (loading || replyStreamingRef.current) return
     const nextId = createThreadId()
     setThreadId(nextId)
     try {
       localStorage.setItem(THREAD_STORAGE_KEY, nextId)
       localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify([{ role: 'assistant', content: OPENING_MSG }]))
-      localStorage.removeItem(LEAD_STORAGE_KEY)
     } catch { /* ignore */ }
     setMessages([{ role: 'assistant', content: OPENING_MSG }])
-    setLeadState(null)
-    setLeadName('')
-    setLeadEmail('')
-    setLeadError('')
     setInput('')
     replyStreamingRef.current = false
     setReplyStreaming(false)
-  }, [loading, leadSubmitting])
+  }, [loading])
 
   // Auto-scroll only inside chat message pane (avoid scrolling the page section)
   useEffect(() => {
@@ -150,11 +134,6 @@ export default function ChatPanel({ active }) {
   useEffect(() => {
     localStorage.setItem(THREAD_STORAGE_KEY, threadId)
   }, [threadId])
-
-  useEffect(() => {
-    if (leadState) localStorage.setItem(LEAD_STORAGE_KEY, leadState)
-    else localStorage.removeItem(LEAD_STORAGE_KEY)
-  }, [leadState])
 
   // Opening message when section snaps in (once per session)
   useEffect(() => {
@@ -179,11 +158,6 @@ export default function ChatPanel({ active }) {
     setInput('')
     setLoading(true)
 
-    // Check hire intent
-    if (HIRE_KEYWORDS.test(userText) && leadState === null) {
-      setLeadState('collecting')
-    }
-
     // Placeholder AI message (streaming target)
     const assistantMsg = { role: 'assistant', content: '' }
     setMessages(prev => [...prev, assistantMsg])
@@ -195,7 +169,7 @@ export default function ChatPanel({ active }) {
       if (!apiKey) {
         setMessages(prev => [
           ...prev.slice(0, -1),
-          { role: 'assistant', content: "🚧 API key not configured yet — add VITE_OPENAI_API_KEY to your .env file to chat with me!" }
+          { role: 'assistant', content: "\u{1F6A7} API key not configured yet — add VITE_OPENAI_API_KEY to your .env file to chat with me!" }
         ])
         return
       }
@@ -255,7 +229,7 @@ export default function ChatPanel({ active }) {
       replyStreamingRef.current = false
       setReplyStreaming(false)
     }
-  }, [messages, loading, leadState, threadId])
+  }, [messages, loading, threadId])
 
   const handleSubmit = (e) => {
     e?.preventDefault()
@@ -266,55 +240,6 @@ export default function ChatPanel({ active }) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSubmit()
-    }
-  }
-
-  // Lead submission via EmailJS
-  const submitLead = async () => {
-    if (!leadName.trim() || !leadEmail.trim() || leadSubmitting) return
-    setLeadSubmitting(true)
-    setLeadError('')
-
-    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID
-    const templateId = import.meta.env.VITE_EMAILJS_LEAD_TEMPLATE_ID
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-
-    if (!serviceId || !templateId || !publicKey) {
-      setLeadSubmitting(false)
-      setLeadError('email setup missing. add EmailJS values in .env first.')
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: "couldn't send it yet — email setup is missing on my side. add EmailJS env values and try again." }
-      ])
-      return
-    }
-
-    try {
-      const emailjs = await import('@emailjs/browser')
-      await emailjs.send(
-        serviceId,
-        templateId,
-        {
-          from_name:  leadName,
-          from_email: leadEmail,
-          message:    `Chat lead from portfolio AI — ${leadName} (${leadEmail}) wants to connect.`,
-        },
-        publicKey
-      )
-      setLeadState('sent')
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: `sick, got it 📬 sent your info to gannu — he'll reach out soon. anything else you wanna know?` }
-      ])
-    } catch (err) {
-      const errorText = err?.text || err?.message || 'failed to send lead email'
-      setLeadError(errorText)
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: `tried sending your details but it failed (${errorText}). fix EmailJS config and hit send again.` }
-      ])
-    } finally {
-      setLeadSubmitting(false)
     }
   }
 
@@ -331,7 +256,7 @@ export default function ChatPanel({ active }) {
             type="button"
             className="chat-clear"
             onClick={clearChatHistory}
-            disabled={loading || leadSubmitting || replyStreaming}
+            disabled={loading || replyStreaming}
             aria-label="Clear chat and start new conversation"
             id="chat-clear-btn"
           >
@@ -363,7 +288,7 @@ export default function ChatPanel({ active }) {
               ) : streamThisBubble ? (
                 <div className="bubble-md bubble-md--plain-stream">
                   {msg.content}
-                  <span className="stream-cursor blink" aria-hidden="true">▍</span>
+                  <span className="stream-cursor blink" aria-hidden="true">{'\u258D'}</span>
                 </div>
               ) : (
                 <div className="bubble-md">
@@ -377,33 +302,6 @@ export default function ChatPanel({ active }) {
         })}
 
         {loading && <TypingIndicator />}
-
-        {/* Lead capture form */}
-        {leadState === 'collecting' && (
-          <div className="lead-capture bubble bubble--ai">
-            <p className="lead-label">drop your details 👇</p>
-            <input
-              className="lead-input"
-              type="text"
-              placeholder="your name"
-              value={leadName}
-              onChange={e => setLeadName(e.target.value)}
-              aria-label="Your name"
-            />
-            <input
-              className="lead-input"
-              type="email"
-              placeholder="your@email.com"
-              value={leadEmail}
-              onChange={e => setLeadEmail(e.target.value)}
-              aria-label="Your email"
-            />
-            <button className="lead-submit" onClick={submitLead} id="lead-submit-btn">
-              {leadSubmitting ? 'SENDING...' : 'SEND TO GANNU →'}
-            </button>
-            {leadError && <p className="form-error" role="alert">{leadError}</p>}
-          </div>
-        )}
 
       </div>
 

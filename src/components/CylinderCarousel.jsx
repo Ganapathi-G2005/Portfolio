@@ -5,47 +5,26 @@ const CARDS = [
   {
     id: 1,
     title: 'DermaGlass',
-    desc: 'Skin disease detection with EfficientNet-B0 & LangGraph clinical reasoning.',
+    desc: 'Full stack AI healthcare platform for automated skin disease diagnosis - Deep Learning - Agentic reasoning.',
     stack: ['PyTorch', 'EfficientNet', 'LangGraph', 'FastAPI'],
     color: '#FF3B00',
-    github: 'https://github.com/Ganapathi-G2005',
-    live: null,
+    live: 'https://dermaglass.vercel.app/',
   },
   {
     id: 2,
     title: 'Sidekick AI',
-    desc: 'Agentic AI assistant — FastAPI, LangGraph, Playwright, Tavily web search.',
-    stack: ['LangGraph', 'FastAPI', 'Playwright', 'OpenAI'],
+    desc: 'Personal AI assistant - agentic architecture - Self evaluating - RAG pipeline - Tool usage.',
+    stack: ['LangGraph', 'RAG', 'FastAPI', 'OpenAI', 'Playwright', 'Tavily'],
     color: '#FFD600',
-    github: 'https://github.com/Ganapathi-G2005',
-    live: null,
+    live: 'https://personal-assistant-xi-steel.vercel.app/',
   },
   {
     id: 3,
-    title: 'FoodBridge',
-    desc: 'Surplus food redistribution platform with geospatial matching engine.',
-    stack: ['FastAPI', 'PostgreSQL', 'PostGIS', 'React'],
-    color: '#00FF94',
-    github: 'https://github.com/Ganapathi-G2005',
-    live: null,
-  },
-  {
-    id: 4,
-    title: 'Multimodal Pipeline',
-    desc: 'BLIP-2/LLaVA image captioning with FAISS vector search & LangGraph flow.',
-    stack: ['BLIP-2', 'FAISS', 'LangGraph', 'Gradio'],
-    color: '#A855F7',
-    github: 'https://github.com/Ganapathi-G2005',
-    live: null,
-  },
-  {
-    id: 5,
     title: 'Next Ship',
     desc: 'Something is cooking — stay tuned. Check the GitHub for early drops.',
     stack: ['TBD'],
     color: '#3B82F6',
     github: 'https://github.com/Ganapathi-G2005',
-    live: null,
   },
 ]
 
@@ -213,15 +192,6 @@ export default function CylinderCarousel() {
 
                 {/* Links */}
                 <div className="ccard-links">
-                  <a
-                    href={card.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ccard-link"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    GITHUB ↗
-                  </a>
                   {card.live && (
                     <a
                       href={card.live}
@@ -229,8 +199,21 @@ export default function CylinderCarousel() {
                       rel="noopener noreferrer"
                       className="ccard-link"
                       onClick={e => e.stopPropagation()}
+                      aria-label={`${card.title} — live demo`}
                     >
                       LIVE ↗
+                    </a>
+                  )}
+                  {card.github && (
+                    <a
+                      href={card.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ccard-link"
+                      onClick={e => e.stopPropagation()}
+                      aria-label={`${card.title} — GitHub`}
+                    >
+                      GITHUB ↗
                     </a>
                   )}
                 </div>

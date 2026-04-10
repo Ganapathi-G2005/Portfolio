@@ -65,7 +65,7 @@ export default function Hero({ onScrollTo }) {
         <div className="hero-left">
           {/* Eyebrow */}
           <p className="hero-eyebrow animate-child">
-            [ AI SYSTEMS ENTHUSIAST · CS UNDERGRAD · BUILDER ]
+            [ AI SYSTEMS ENTHUSIAST · CS UNDERGRAD · ATHLETE ]
             <span className="blink" aria-hidden="true">_</span>
           </p>
 
@@ -86,8 +86,8 @@ export default function Hero({ onScrollTo }) {
 
           {/* Intro text */}
           <p className="hero-intro animate-child" style={{ animationDelay: '160ms' }}>
-            AI systems enthusiast and CS undergrad who builds things that actually work.
-            Currently shipping agentic AI, computer vision, and whatever problem I wake up obsessing over.
+            Just a crazy guy who builds things that actually work.
+            Currently shipping AI products, and whatever problem I wake up obsessing over.
           </p>
 
           {/* CTAs */}

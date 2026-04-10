@@ -3,33 +3,35 @@ import './Skills.css'
 
 /* ─── Data ─────────────────────────────────────────────────────── */
 const SKILLS_ROW1 = [
+  { label: 'Python',       cat: 'Backend' }, 
+  { label: 'Data Science', cat: 'ML/AI' },
+  { label: 'Machine Learning', cat: 'ML/AI' },
+  { label: 'Deep Learning', cat: 'ML/AI' },
+  { label: 'Agentic AI', cat: 'ML/AI' },
+  { label: 'RAG', cat: 'ML/AI' },
   { label: 'PyTorch',       cat: 'ML/AI' },
   { label: 'LangChain',     cat: 'ML/AI' },
   { label: 'LangGraph',     cat: 'ML/AI' },
   { label: 'EfficientNet',  cat: 'ML/AI' },
-  { label: 'BLIP-2',        cat: 'ML/AI' },
-  { label: 'HuggingFace',   cat: 'ML/AI' },
   { label: 'OpenAI API',    cat: 'ML/AI' },
-  { label: 'FAISS',         cat: 'ML/AI' },
+  { label: 'Gemini API',    cat: 'ML/AI' },
   { label: 'FastAPI',       cat: 'Backend' },
   { label: 'PostgreSQL',    cat: 'Backend' },
-  { label: 'PostGIS',       cat: 'Backend' },
-  { label: 'Supabase',      cat: 'Backend' },
 ]
 
 const SKILLS_ROW2 = [
-  { label: 'React',         cat: 'Frontend' },
-  { label: 'Vite',          cat: 'Frontend' },
-  { label: 'TypeScript',    cat: 'Frontend' },
-  { label: 'CSS',           cat: 'Frontend' },
+  
+  { label: 'Antigravity',   cat: 'Tools' },
+  { label: 'Claude code', cat: 'Tools' },
+  { label: 'Cursor', cat: 'Tools' },
+  { label: 'VSCode', cat: 'Tools' },
   { label: 'Git',           cat: 'Tools' },
   { label: 'Docker',        cat: 'Tools' },
   { label: 'Vercel',        cat: 'Tools' },
   { label: 'Gradio',        cat: 'Tools' },
-  { label: 'Python',        cat: 'Backend' },
+  { Label: 'EmailJS', cat: 'Tools' },
   { label: 'Playwright',    cat: 'Tools' },
   { label: 'Tavily',        cat: 'Tools' },
-  { label: 'WebSockets',    cat: 'Backend' },
 ]
 
 const CAT_DOT = {
@@ -41,38 +43,37 @@ const CAT_DOT = {
 
 const ACHIEVEMENTS = [
   {
-    stat: '#1',
+    stat: '#2',
     title: 'DSA HACKATHON',
-    sub:   'Codeathon · Institute-wide',
+    sub:   'Codeathon · IIITDM Kancheepuram',
     color: 'var(--accent-2)',
   },
   {
     stat: '⚽',
     title: 'FOOTBALL CAPTAIN',
-    sub:   'Institute team',
+    sub:   'IFL - IIITDM Kancheepuram',
     color: 'var(--accent-3)',
   },
   {
-    stat: '3',
-    title: 'AI PRODUCTS SHIPPED',
-    sub:   'Real users · Real problems',
+    stat: '10+',
+    title: 'PROJECTS COMPLETED',
+    sub:   'Real problems',
     color: 'var(--accent)',
   },
   {
-    stat: '∞',
+    stat: '300+',
     title: 'PROBLEMS SOLVED',
-    sub:   'DSA · Competitive coding',
+    sub:   'DSA',
     color: 'var(--card-4)',
   },
 ]
 
 const EXTRAS = [
   { icon: '⚽', label: 'Football' },
-  { icon: '🏆', label: 'Hackathon Winner' },
-  { icon: '🎌', label: 'Anime Enthusiast' },
-  { icon: '🎯', label: 'DSA Competitive' },
-  { icon: '🤝', label: 'Team Lead' },
-  { icon: '🤖', label: 'AI Builder' },
+  { icon: '🎾', label: 'Badminton'},
+  { icon: '🛩️', label: 'RC Hobbies' },
+  { icon: '📚', label: 'Reading Books'},
+  { icon: '🌍', label: 'Travelling'}
 ]
 
 /* ─── Ticker row ───────────────────────────────────────────────── */

@@ -5,9 +5,7 @@ import './Projects.css'
 const CARDS_DATA = [
   { id: 1, title: 'DermaGlass' },
   { id: 2, title: 'Sidekick AI' },
-  { id: 3, title: 'FoodBridge' },
-  { id: 4, title: 'Multimodal Pipeline' },
-  { id: 5, title: 'Next Ship' },
+  { id: 3, title: 'Next Ship' },
 ]
 
 /* ── Mobile scroll carousel ── */
