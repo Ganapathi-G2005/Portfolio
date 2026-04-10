@@ -1,20 +1,39 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import './ChatPanel.css'
 
-const SYSTEM_PROMPT = `You are GMS Ganapathi's AI twin. You respond exactly as Gannu would: chill, direct, gen-z energy, no corporate speak. You are an AI systems enthusiast and CS undergrad at IIITDM Kancheepuram (graduating 2027).
+const SYSTEM_PROMPT = `You are GMS Ganapathi's AI twin. You respond as Gannu would — direct, warm, a little fun yet professional. You are a CS undergrad at IIITDM Kancheepuram (graduating 2027) who builds AI systems and genuinely enjoys the craft.
 
-WHAT YOU KNOW:
-- Projects: DermaGlass (skin disease detection, EfficientNet-B0, LangGraph), Sidekick AI (agentic AI, FastAPI, LangGraph, Playwright, Tavily), FoodBridge (surplus food redistribution, FastAPI, PostgreSQL, PostGIS), Multimodal Pipeline (BLIP-2/LLaVA, FAISS, LangGraph, Gradio)
-- Stack: PyTorch, LangChain, LangGraph, FastAPI, React, PostgreSQL, Supabase, OpenAI API
-- Won DSA Hackathon (Codeathon), captained institute football team
-- Interests: AI systems, agentic architectures, anime (One Piece)
+ABOUT GANNU:
+- Education: B.Tech CSE at IIITDM Kancheepuram, CGPA 8.08, graduating 2027
+- Contact: ganapathi.gadagamma@gmail.com | +91-9347076225
+
+PROJECTS:
+- DermaGlass: AI dermatology platform. EfficientNet-B0 (PyTorch, 93% accuracy), LangGraph agentic workflows, LLM-powered medical responses
+- Personal AI Assistant (Sidekick AI): Agentic assistant with self-evaluating feedback loops, RAG for file uploads, LangGraph + LangChain + OpenAI + Tavily + Playwright + Gradio
+- Fraud Detection System: End-to-end pipeline with Scikit-learn, SMOTE for class imbalance, XGBoost/Random Forest, Flask API deployment
+- Customer Churn Prediction: EDA, Logistic Regression + Gradient Boosting, Streamlit dashboard, feature importance analysis
+
+SKILLS: Python, C++, PyTorch, LangChain, LangGraph, FastAPI, React, PostgreSQL, Supabase, Scikit-learn, OpenAI API, Gemini API, Data Science, ML, Deep Learning, Agentic AI
+
+ACHIEVEMENTS:
+- Winner, Codeathon (DSA Hackathon) at IIITDM Kancheepuram
+- Captain, IFL Football League — led team to 2nd place
+
+INTERESTS (outside tech): Reading books, travelling, football, badminton, building hardware projects (RC planes, RC cars)
 
 BEHAVIOR:
-- Keep replies short unless depth is needed
-- Never sound like a corporate chatbot
-- If someone wants to hire/collaborate/intern with Gannu, respond naturally and warmly, then ask for their name and email so Gannu can follow up. Say something like: "yo that's sick — drop your name and email and I'll make sure gannu actually sees this"
-- Don't make up things Gannu hasn't done
-- Use lowercase most of the time, it's part of the vibe`
+- Keep replies concise unless the question genuinely needs depth
+- Be helpful and friendly — like talking to a real person, not a chatbot
+- If someone wants to hire, collaborate, or intern with Gannu, respond warmly and naturally, then ask for their name and email so Gannu can follow up. Say something like: "That's great to hear — drop your name and email and I'll make sure Gannu gets back to you."
+- Never make up projects or experiences Gannu hasn't done
+- Tone: conversational and slightly professional — friendly, not formal; fun, not goofy
+
+OUTPUT FORMAT (for the chat UI):
+- Write every reply in GitHub-flavored Markdown so the client can render it (headings only when they help scanability).
+- Use **bold** / *italic* when useful, bullet or numbered lists for sequences, fenced code blocks for multi-line code or commands, and inline \`backticks\` for short snippets, file names, or identifiers.
+- Do not wrap the whole answer in a single fenced code block unless the entire reply is literally code.`
 
 const OPENING_MSG = "hey, what's up 👋 i'm gannu's ai twin — i know his projects, stack, and how he thinks. what do you wanna know?"
 
@@ -22,12 +41,43 @@ const HIRE_KEYWORDS = /\b(hire|hiring|intern|internship|collab|collaborate|colla
 const CHAT_STORAGE_KEY = 'gannu_chat_messages'
 const THREAD_STORAGE_KEY = 'gannu_chat_thread_id'
 const LEAD_STORAGE_KEY = 'gannu_chat_lead_state'
+const CHAT_STORAGE_VERSION_KEY = 'gannu_chat_storage_v'
+/** Bump this to wipe persisted messages / thread / lead for all visitors once. */
+const CHAT_STORAGE_VERSION = '2'
+
+function applyChatStorageMigration() {
+  try {
+    if (localStorage.getItem(CHAT_STORAGE_VERSION_KEY) === CHAT_STORAGE_VERSION) return
+    localStorage.removeItem(CHAT_STORAGE_KEY)
+    localStorage.removeItem(THREAD_STORAGE_KEY)
+    localStorage.removeItem(LEAD_STORAGE_KEY)
+    localStorage.setItem(CHAT_STORAGE_VERSION_KEY, CHAT_STORAGE_VERSION)
+  } catch {
+    /* ignore private mode / quota */
+  }
+}
+
+applyChatStorageMigration()
 
 function createThreadId() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()
   }
   return `thread_${Date.now()}`
+}
+
+const markdownComponents = {
+  a: ({ href, children }) => {
+    const safe =
+      typeof href === 'string' &&
+      (href.startsWith('https://') || href.startsWith('http://') || href.startsWith('mailto:'))
+    if (!safe) return <span>{children}</span>
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    )
+  },
 }
 
 function TypingIndicator() {
@@ -51,21 +101,47 @@ export default function ChatPanel({ active }) {
   })
   const [input,      setInput]      = useState('')
   const [loading,    setLoading]    = useState(false)
+  /** True while OpenAI stream is in progress (UI only; ref guards sendMessage without stale deps). */
+  const [replyStreaming, setReplyStreaming] = useState(false)
+  const replyStreamingRef = useRef(false)
   const [openedOnce, setOpenedOnce] = useState(false)
   const [leadState,  setLeadState]  = useState(() => {
     const saved = localStorage.getItem(LEAD_STORAGE_KEY)
     return saved || null
   }) // null | 'collecting' | 'sent'
+  const [leadSubmitting, setLeadSubmitting] = useState(false)
+  const [leadError, setLeadError] = useState('')
   const [leadName,   setLeadName]   = useState('')
   const [leadEmail,  setLeadEmail]  = useState('')
-  const [threadId]   = useState(() => localStorage.getItem(THREAD_STORAGE_KEY) || createThreadId())
-  const messagesEndRef = useRef(null)
+  const [threadId, setThreadId]   = useState(() => localStorage.getItem(THREAD_STORAGE_KEY) || createThreadId())
+  const messagesListRef = useRef(null)
   const inputRef = useRef(null)
 
-  // Auto-scroll
+  const clearChatHistory = useCallback(() => {
+    if (loading || leadSubmitting || replyStreamingRef.current) return
+    const nextId = createThreadId()
+    setThreadId(nextId)
+    try {
+      localStorage.setItem(THREAD_STORAGE_KEY, nextId)
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify([{ role: 'assistant', content: OPENING_MSG }]))
+      localStorage.removeItem(LEAD_STORAGE_KEY)
+    } catch { /* ignore */ }
+    setMessages([{ role: 'assistant', content: OPENING_MSG }])
+    setLeadState(null)
+    setLeadName('')
+    setLeadEmail('')
+    setLeadError('')
+    setInput('')
+    replyStreamingRef.current = false
+    setReplyStreaming(false)
+  }, [loading, leadSubmitting])
+
+  // Auto-scroll only inside chat message pane (avoid scrolling the page section)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading])
+    const el = messagesListRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+  }, [messages, loading, replyStreaming])
 
   useEffect(() => {
     localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages))
@@ -93,7 +169,7 @@ export default function ChatPanel({ active }) {
   }, [active, openedOnce, messages.length])
 
   const sendMessage = useCallback(async (userText) => {
-    if (!userText.trim() || loading) return
+    if (!userText.trim() || loading || replyStreamingRef.current) return
 
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY
 
@@ -111,18 +187,19 @@ export default function ChatPanel({ active }) {
     // Placeholder AI message (streaming target)
     const assistantMsg = { role: 'assistant', content: '' }
     setMessages(prev => [...prev, assistantMsg])
-    setLoading(false) // show streaming cursor instead
-
-    if (!apiKey) {
-      // Fallback if no key configured
-      setMessages(prev => [
-        ...prev.slice(0, -1),
-        { role: 'assistant', content: "🚧 API key not configured yet — add VITE_OPENAI_API_KEY to your .env file to chat with me!" }
-      ])
-      return
-    }
+    setLoading(false)
+    replyStreamingRef.current = true
+    setReplyStreaming(true)
 
     try {
+      if (!apiKey) {
+        setMessages(prev => [
+          ...prev.slice(0, -1),
+          { role: 'assistant', content: "🚧 API key not configured yet — add VITE_OPENAI_API_KEY to your .env file to chat with me!" }
+        ])
+        return
+      }
+
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -174,8 +251,11 @@ export default function ChatPanel({ active }) {
         ...prev.slice(0, -1),
         { role: 'assistant', content: `oops, something went wrong (${err.message}). try again?` }
       ])
+    } finally {
+      replyStreamingRef.current = false
+      setReplyStreaming(false)
     }
-  }, [messages, loading, leadState])
+  }, [messages, loading, leadState, threadId])
 
   const handleSubmit = (e) => {
     e?.preventDefault()
@@ -191,25 +271,51 @@ export default function ChatPanel({ active }) {
 
   // Lead submission via EmailJS
   const submitLead = async () => {
-    if (!leadName.trim() || !leadEmail.trim()) return
+    if (!leadName.trim() || !leadEmail.trim() || leadSubmitting) return
+    setLeadSubmitting(true)
+    setLeadError('')
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID
+    const templateId = import.meta.env.VITE_EMAILJS_LEAD_TEMPLATE_ID
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+
+    if (!serviceId || !templateId || !publicKey) {
+      setLeadSubmitting(false)
+      setLeadError('email setup missing. add EmailJS values in .env first.')
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: "couldn't send it yet — email setup is missing on my side. add EmailJS env values and try again." }
+      ])
+      return
+    }
+
     try {
       const emailjs = await import('@emailjs/browser')
       await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_id',
-        import.meta.env.VITE_EMAILJS_LEAD_TEMPLATE_ID || 'template_id',
+        serviceId,
+        templateId,
         {
           from_name:  leadName,
           from_email: leadEmail,
           message:    `Chat lead from portfolio AI — ${leadName} (${leadEmail}) wants to connect.`,
         },
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'public_key'
+        publicKey
       )
-    } catch {}
-    setLeadState('sent')
-    setMessages(prev => [
-      ...prev,
-      { role: 'assistant', content: `sick, got it 📬 sent your info to gannu — he'll reach out soon. anything else you wanna know?` }
-    ])
+      setLeadState('sent')
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: `sick, got it 📬 sent your info to gannu — he'll reach out soon. anything else you wanna know?` }
+      ])
+    } catch (err) {
+      const errorText = err?.text || err?.message || 'failed to send lead email'
+      setLeadError(errorText)
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: `tried sending your details but it failed (${errorText}). fix EmailJS config and hit send again.` }
+      ])
+    } finally {
+      setLeadSubmitting(false)
+    }
   }
 
   return (
@@ -220,22 +326,51 @@ export default function ChatPanel({ active }) {
           <span className="status-dot" aria-hidden="true" />
           <span>GANNU_AI · ONLINE</span>
         </div>
-        <span className="chat-powered">POWERED BY GPT-4.1-NANO</span>
+        <div className="chat-header-right">
+          <button
+            type="button"
+            className="chat-clear"
+            onClick={clearChatHistory}
+            disabled={loading || leadSubmitting || replyStreaming}
+            aria-label="Clear chat and start new conversation"
+            id="chat-clear-btn"
+          >
+            New chat
+          </button>
+          <span className="chat-powered">POWERED BY GPT-4.1-NANO</span>
+        </div>
       </div>
 
       {/* Messages */}
-      <div className="chat-messages" role="log" aria-live="polite" aria-label="Chat messages">
+      <div
+        className="chat-messages"
+        role="log"
+        aria-live="polite"
+        aria-label="Chat messages"
+        ref={messagesListRef}
+      >
         {messages.map((msg, i) => {
           const isLast = i === messages.length - 1
-          const isStreaming = isLast && msg.role === 'assistant' && loading === false && msg.content !== ''
+          const streamThisBubble =
+            isLast && msg.role === 'assistant' && replyStreaming
           return (
             <div
               key={i}
               className={`bubble bubble--${msg.role === 'user' ? 'user' : 'ai'}`}
             >
-              {msg.content}
-              {isStreaming && messages.length > 1 && i === messages.length - 1 && (
-                <span className="stream-cursor blink" aria-hidden="true">▍</span>
+              {msg.role === 'user' ? (
+                msg.content
+              ) : streamThisBubble ? (
+                <div className="bubble-md bubble-md--plain-stream">
+                  {msg.content}
+                  <span className="stream-cursor blink" aria-hidden="true">▍</span>
+                </div>
+              ) : (
+                <div className="bubble-md">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                    {msg.content}
+                  </ReactMarkdown>
+                </div>
               )}
             </div>
           )
@@ -264,12 +399,12 @@ export default function ChatPanel({ active }) {
               aria-label="Your email"
             />
             <button className="lead-submit" onClick={submitLead} id="lead-submit-btn">
-              SEND TO GANNU →
+              {leadSubmitting ? 'SENDING...' : 'SEND TO GANNU →'}
             </button>
+            {leadError && <p className="form-error" role="alert">{leadError}</p>}
           </div>
         )}
 
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
@@ -284,12 +419,12 @@ export default function ChatPanel({ active }) {
           placeholder="ask me anything..."
           aria-label="Chat input"
           id="chat-input"
-          disabled={loading}
+          disabled={loading || replyStreaming}
         />
         <button
           type="submit"
           className="chat-send"
-          disabled={loading || !input.trim()}
+          disabled={loading || replyStreaming || !input.trim()}
           aria-label="Send message"
           id="chat-send-btn"
         >

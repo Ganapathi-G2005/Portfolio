@@ -156,7 +156,7 @@ export default function Contact() {
               </div>
 
               <div className="field-group">
-                <label className="field-label" htmlFor="contact-message">WHAT'S UP</label>
+                <label className="field-label" htmlFor="contact-message">MESSAGE</label>
                 <textarea
                   id="contact-message"
                   name="message"

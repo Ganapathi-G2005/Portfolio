@@ -49,7 +49,7 @@ export default function Nav({ containerRef, activeSection }) {
           onClick={() => scrollTo('hero')}
           aria-label="Go to top"
         >
-          GMS
+          GMS GANAPATHI
         </button>
 
         {/* Desktop center links */}

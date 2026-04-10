@@ -37,11 +37,43 @@
   animation: pulse-glow 2s infinite;
 }
 
+.chat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.chat-clear {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 5px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 150ms, color 150ms;
+}
+.chat-clear:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chat-clear:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .chat-powered {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-tertiary);
   letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Messages */
@@ -80,9 +112,95 @@
   font-weight: 500;
 }
 
-.stream-cursor {
+/* Assistant markdown */
+.bubble-md {
+  font-size: inherit;
+  line-height: inherit;
+}
+/* Plain text + inline caret while streaming (avoids block <p> + cursor on next line) */
+.bubble-md--plain-stream {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.bubble-md p {
+  margin: 0 0 0.65em;
+}
+.bubble-md p:last-child {
+  margin-bottom: 0;
+}
+.bubble-md ul,
+.bubble-md ol {
+  margin: 0.35em 0 0.65em;
+  padding-left: 1.25em;
+}
+.bubble-md li {
+  margin: 0.2em 0;
+}
+.bubble-md h1,
+.bubble-md h2,
+.bubble-md h3 {
+  font-size: 1.05em;
+  font-weight: 700;
+  margin: 0.65em 0 0.35em;
+  line-height: 1.25;
+}
+.bubble-md h1:first-child,
+.bubble-md h2:first-child,
+.bubble-md h3:first-child {
+  margin-top: 0;
+}
+.bubble-md pre {
+  margin: 0.5em 0;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow-x: auto;
   font-size: 12px;
-  margin-left: 2px;
+  line-height: 1.45;
+}
+.bubble-md code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.bubble-md :not(pre) > code {
+  padding: 0.12em 0.35em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.bubble-md blockquote {
+  margin: 0.5em 0;
+  padding-left: 0.75em;
+  border-left: 3px solid var(--accent);
+  color: var(--text-secondary);
+}
+.bubble-md a {
+  color: var(--accent-3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bubble-md table {
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 0.5em 0;
+  width: 100%;
+}
+.bubble-md th,
+.bubble-md td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  text-align: left;
+}
+.bubble-md hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.75em 0;
+}
+
+.stream-cursor {
+  display: inline;
+  font-size: 1em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
   color: var(--accent-3);
 }
 

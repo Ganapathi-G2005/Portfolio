@@ -109,7 +109,7 @@
 .field-label {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--text-secondary);
+  color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
