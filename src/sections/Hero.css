@@ -3,15 +3,19 @@
   padding-top: var(--nav-h);
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 
+/* ── Grid layout: left gets all remaining space, right is fixed ── */
 .hero-inner {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 300px;  /* left fills, right is locked at 300px */
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 0 80px;
-  gap: var(--sp-8);
+  padding: 0 60px;
+  gap: 40px;
+  box-sizing: border-box;
 }
 
 /* ── Entrance: children fade in staggered ── */
@@ -27,7 +31,7 @@
 
 /* ── Left column ── */
 .hero-left {
-  flex: 0 0 55%;
+  min-width: 0;           /* critical: allows grid cell to not overflow */
   display: flex;
   flex-direction: column;
   gap: var(--sp-5);
@@ -57,16 +61,25 @@
   height: 6px;
   background: var(--accent);
   flex-shrink: 0;
-  margin-top: 20px;
+  margin-top: 14px;
 }
 .hero-heading {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(64px, 9vw, 120px);
+  /*
+    5.5vw scales safely across the full desktop range:
+    - 1024px → 56px, "GANAPATHI" ≈ 340px → fits in ~560px left col ✓
+    - 1280px → 70px, "GANAPATHI" ≈ 430px → fits in ~820px ✓
+    - 1536px → 84px, "GANAPATHI" ≈ 515px → fits in ~1070px ✓
+  */
+  font-size: clamp(48px, 5.5vw, 96px);
   line-height: 0.9;
   letter-spacing: -0.04em;
   color: var(--text-primary);
   text-transform: uppercase;
+  /* never wrap mid-word, but allow wrapping between GMS and GANAPATHI */
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 /* Intro */
@@ -107,14 +120,22 @@
 
 /* ── Right column ── */
 .hero-right {
-  flex: 0 0 45%;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+/*
+  The wrap uses padding-right + padding-bottom to carve out room
+  for the brutalist offset shadow without it bleeding anywhere.
+*/
 .hero-photo-wrap {
   position: relative;
+  width: 100%;
+  padding-right: 14px;
+  padding-bottom: 14px;
+  box-sizing: border-box;
 }
 
 /* Photo block */
@@ -133,6 +154,16 @@
   height: 100%;
   object-fit: cover;
   object-position: top center;
+  display: block;
+  transition: transform 400ms var(--ease-out-expo), filter 400ms;
+  filter: grayscale(10%);
+  user-select: none;
+  pointer-events: none;
+}
+
+.hero-photo--desktop:hover img {
+  transform: scale(1.03);
+  filter: grayscale(0%);
 }
 
 .hero-initials {
@@ -149,41 +180,58 @@
 /* Desktop photo */
 .hero-photo--desktop {
   width: 100%;
-  height: 70vh;
-  max-height: 520px;
+  height: clamp(340px, 60vh, 460px);
   z-index: 1;
+  overflow: hidden;
 }
 
-/* Brutalist offset shadow */
+/* Brutalist offset shadow — contained inside wrap padding */
 .hero-photo-shadow {
   position: absolute;
-  inset: 0;
-  top: 12px;
-  left: 12px;
+  top: 14px;
+  left: 14px;
+  right: 0;
+  bottom: 0;
   background: var(--accent);
   z-index: 0;
 }
 
-/* Mobile photo (inside left column) */
+/* Mobile photo (inside left column) — circular */
 .hero-photo--mobile {
   display: none;
-  width: 160px;
-  height: 160px;
+  width: 120px;
+  height: 120px;
   align-self: center;
+  border-radius: 50%;
+  border: 3px solid var(--accent) !important;
+  overflow: hidden;
 }
 
 /* ── Responsive ── */
+
+/* Tablet: smaller right column, smaller heading */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero-inner {
+    grid-template-columns: 1fr 240px;
+    padding: 0 40px;
+    gap: 32px;
+  }
+  .hero-heading {
+    font-size: clamp(40px, 5.5vw, 64px);
+  }
+  .hero-photo--desktop {
+    height: clamp(280px, 55vh, 380px);
+  }
+}
+
+/* Mobile: stack vertically, hide right column */
 @media (max-width: 767px) {
   .hero-inner {
-    padding: var(--sp-5) var(--sp-5) var(--sp-5);
+    display: flex;           /* back to flex for single-column stacking */
     flex-direction: column;
+    padding: var(--sp-5);
     gap: var(--sp-4);
     justify-content: center;
-  }
-  .hero-left {
-    flex: none;
-    width: 100%;
-    gap: var(--sp-3);
   }
   .hero-right {
     display: none;
@@ -203,14 +251,5 @@
   .hero-ctas .btn {
     padding: 12px 20px;
     font-size: 12px;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  .hero-inner {
-    padding: 0 var(--sp-7);
-  }
-  .hero-heading {
-    font-size: clamp(52px, 7vw, 80px);
   }
 }

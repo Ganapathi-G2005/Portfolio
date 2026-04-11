@@ -80,8 +80,8 @@ export default function Hero({ onScrollTo }) {
           </div>
           
           {/* Mobile photo */}
-          <div className="hero-photo hero-photo--mobile animate-child" style={{ animationDelay: '160ms' }} aria-hidden="true">
-            <span className="hero-initials">GMS</span>
+          <div className="hero-photo hero-photo--mobile animate-child" style={{ animationDelay: '160ms' }}>
+            <img src="/Logo.png" alt="GMS Ganapathi" draggable="false" />
           </div>
 
           {/* Intro text */}
@@ -128,8 +128,8 @@ export default function Hero({ onScrollTo }) {
         {/* Right column — desktop photo */}
         <div className="hero-right animate-child" style={{ animationDelay: '120ms' }}>
           <div className="hero-photo-wrap">
-            <div className="hero-photo hero-photo--desktop" aria-label="Photo placeholder — GMS">
-              <span className="hero-initials hero-initials--lg">GMS</span>
+            <div className="hero-photo hero-photo--desktop" aria-label="GMS Ganapathi">
+              <img src="/Logo.png" alt="GMS Ganapathi" draggable="false" />
             </div>
             <div className="hero-photo-shadow" aria-hidden="true" />
           </div>
