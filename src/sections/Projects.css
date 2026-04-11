@@ -89,6 +89,35 @@
   margin-top: 8px;
 }
 
+/* Active project copy — same data as desktop cards, full width on small screens */
+.mobile-project-details {
+  width: 100%;
+  max-width: 100%;
+  align-self: stretch;
+  margin-top: 8px;
+  padding: 20px 4px 0;
+  border-top: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+}
+.mobile-project-details-strip {
+  height: 6px;
+  width: 100%;
+  border-radius: 0;
+}
+.mobile-project-details-desc {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  -webkit-box-orient: unset;
+  flex: 0 1 auto;
+  margin: 0;
+  text-align: left;
+}
+
 /* Dots (shared with cylinder) */
 .cylinder-dots {
   display: flex;

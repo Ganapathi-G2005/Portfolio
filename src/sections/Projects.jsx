@@ -1,14 +1,47 @@
 import { useEffect, useRef, useState } from 'react'
-import CylinderCarousel from '../components/CylinderCarousel'
+import CylinderCarousel, { CARDS } from '../components/CylinderCarousel'
 import './Projects.css'
 
-const CARDS_DATA = [
-  { id: 1, title: 'DermaGlass' },
-  { id: 2, title: 'Sidekick AI' },
-  { id: 3, title: 'Next Ship' },
-]
-
 /* ── Mobile scroll carousel ── */
+function MobileProjectDetails({ card }) {
+  if (!card) return null
+  return (
+    <div className="mobile-project-details">
+      <div className="mobile-project-details-strip" style={{ background: card.color }} aria-hidden="true" />
+      <p className="ccard-desc mobile-project-details-desc">{card.desc}</p>
+      <div className="ccard-stack">
+        {card.stack.map((s) => (
+          <span key={s} className="ccard-badge">{s}</span>
+        ))}
+      </div>
+      <div className="ccard-links">
+        {card.live && (
+          <a
+            href={card.live}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ccard-link"
+            aria-label={`${card.title} — live demo`}
+          >
+            LIVE ↗
+          </a>
+        )}
+        {card.github && (
+          <a
+            href={card.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ccard-link"
+            aria-label={`${card.title} — GitHub`}
+          >
+            GITHUB ↗
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function MobileCarousel() {
   const [activeIdx, setActiveIdx] = useState(0)
   const trackRef = useRef(null)
@@ -30,17 +63,18 @@ function MobileCarousel() {
   return (
     <div className="mobile-carousel-wrap">
       <div className="mobile-carousel-track" ref={trackRef}>
-        {CARDS_DATA.map((card, i) => (
+        {CARDS.map((card, i) => (
           <div key={card.id} className={`mcard${i === activeIdx ? ' mcard--active' : ''}`}>
             <div className="mcard-inner">
               <h3 className="mcard-title">{card.title}</h3>
-              <p className="mcard-num">{String(card.id).padStart(2,'0')} / {String(CARDS_DATA.length).padStart(2,'0')}</p>
+              <p className="mcard-num">{String(card.id).padStart(2,'0')} / {String(CARDS.length).padStart(2,'0')}</p>
             </div>
           </div>
         ))}
       </div>
+      <MobileProjectDetails card={CARDS[activeIdx]} />
       <div className="cylinder-dots" style={{ marginTop: 16 }}>
-        {CARDS_DATA.map((_, i) => (
+        {CARDS.map((_, i) => (
           <button
             key={i}
             className={`cylinder-dot${i === activeIdx ? ' cylinder-dot--active' : ''}`}

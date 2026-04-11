@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import './CylinderCarousel.css'
 
-const CARDS = [
+export const CARDS = [
   {
     id: 1,
     title: 'DermaGlass',
