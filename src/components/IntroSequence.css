@@ -6,11 +6,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 300ms ease;
+  /* smooth fade + slight upward drift on exit */
+  transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .intro-overlay--exit {
   opacity: 0;
+  transform: translateY(-12px);
   pointer-events: none;
 }
 
@@ -18,7 +21,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -26,30 +29,41 @@
 @media (max-width: 767px) {
   .intro-words {
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
 }
 
-/* ── Word enter animation ── */
+/* ── Enter: slide up from below with spring easing ── */
 @keyframes word-in {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(40px) scale(0.92);
+    filter: blur(4px);
   }
-  to {
+
+  60% {
+    filter: blur(0px);
+  }
+
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
   }
 }
 
+/* ── Exit: slide up and fade ── */
 @keyframes word-out {
-  from {
+  0% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
   }
-  to {
+
+  100% {
     opacity: 0;
-    transform: translateY(-32px);
+    transform: translateY(-28px) scale(0.94);
+    filter: blur(3px);
   }
 }
 
@@ -60,19 +74,21 @@
   letter-spacing: -0.04em;
   line-height: 1;
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(40px) scale(0.92);
   display: inline-block;
+  will-change: transform, opacity, filter;
 }
 
 .intro-word--enter {
-  animation: word-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: word-in 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .intro-word--hold {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
 }
 
 .intro-word--exit {
-  animation: word-out 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: word-out 400ms cubic-bezier(0.4, 0, 1, 1) both;
 }

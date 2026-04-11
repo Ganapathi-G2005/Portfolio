@@ -34,7 +34,7 @@ OUTPUT FORMAT (for the chat UI):
 - Use **bold** / *italic* when useful, bullet or numbered lists for sequences, fenced code blocks for multi-line code or commands, and inline \`backticks\` for short snippets, file names, or identifiers.
 - Do not wrap the whole answer in a single fenced code block unless the entire reply is literally code.`
 
-const OPENING_MSG = "hey, what's up\u{1F44B} i'm gannu's ai twin — i know his projects, stack, and how he thinks. what do you wanna know?"
+const OPENING_MSG = "Hey, what's up\u{1F44B} I'm gannu's ai twin — I know his projects, stack, and how he thinks. what do you wanna know?"
 
 const CHAT_STORAGE_KEY = 'gannu_chat_messages'
 const THREAD_STORAGE_KEY = 'gannu_chat_thread_id'
@@ -88,7 +88,7 @@ function TypingIndicator() {
 }
 
 export default function ChatPanel({ active }) {
-  const [messages,   setMessages]   = useState(() => {
+  const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem(CHAT_STORAGE_KEY)
       return saved ? JSON.parse(saved) : []
@@ -96,13 +96,13 @@ export default function ChatPanel({ active }) {
       return []
     }
   })
-  const [input,      setInput]      = useState('')
-  const [loading,    setLoading]    = useState(false)
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
   /** True while OpenAI stream is in progress (UI only; ref guards sendMessage without stale deps). */
   const [replyStreaming, setReplyStreaming] = useState(false)
   const replyStreamingRef = useRef(false)
   const [openedOnce, setOpenedOnce] = useState(false)
-  const [threadId, setThreadId]   = useState(() => localStorage.getItem(THREAD_STORAGE_KEY) || createThreadId())
+  const [threadId, setThreadId] = useState(() => localStorage.getItem(THREAD_STORAGE_KEY) || createThreadId())
   const messagesListRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -194,9 +194,9 @@ export default function ChatPanel({ active }) {
 
       if (!response.ok) throw new Error(`API error: ${response.status}`)
 
-      const reader  = response.body.getReader()
+      const reader = response.body.getReader()
       const decoder = new TextDecoder()
-      let   accum   = ''
+      let accum = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -210,14 +210,14 @@ export default function ChatPanel({ active }) {
           if (data === '[DONE]') break
           try {
             const parsed = JSON.parse(data)
-            const token  = parsed.choices?.[0]?.delta?.content || ''
+            const token = parsed.choices?.[0]?.delta?.content || ''
             accum += token
             setMessages(prev => {
               const updated = [...prev]
               updated[updated.length - 1] = { role: 'assistant', content: accum }
               return updated
             })
-          } catch {}
+          } catch { }
         }
       }
     } catch (err) {
@@ -327,8 +327,8 @@ export default function ChatPanel({ active }) {
           id="chat-send-btn"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
           </svg>
         </button>
       </form>
