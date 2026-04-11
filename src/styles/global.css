@@ -21,6 +21,7 @@ html, body {
 .scroll-container {
   height: 100vh;
   overflow-y: scroll;
+  overflow-x: hidden;           /* ← prevents any section from creating horizontal scroll */
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   overscroll-behavior-y: none;
@@ -28,6 +29,7 @@ html, body {
 
 .section {
   height: 100vh;
+  max-width: 100vw;             /* ← hard cap — nothing can exceed viewport width */
   scroll-snap-align: start;
   scroll-snap-stop: always;
   overflow: hidden;

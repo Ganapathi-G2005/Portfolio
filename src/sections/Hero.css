@@ -6,16 +6,19 @@
   overflow: hidden;
 }
 
-/* ── Grid layout: left gets all remaining space, right is fixed ── */
+/* ── Grid layout: left fills, right column is fixed width ── */
 .hero-inner {
   display: grid;
-  grid-template-columns: 1fr 300px;  /* left fills, right is locked at 300px */
+  grid-template-columns: 1fr 280px;
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 0 60px;
-  gap: 40px;
+  /* Same clamp on both sides — no asymmetric cropping */
+  padding: 0 clamp(16px, 4vw, 60px);
+  gap: clamp(24px, 3vw, 40px);
   box-sizing: border-box;
+  /* Safety: if anything is wider than viewport, clip it here */
+  overflow: hidden;
 }
 
 /* ── Entrance: children fade in staggered ── */
@@ -24,6 +27,7 @@
   transform: translateY(20px);
   transition: opacity 600ms var(--ease-out-expo), transform 600ms var(--ease-out-expo);
 }
+
 .hero-inner--visible .animate-child {
   opacity: 1;
   transform: translateY(0);
@@ -31,7 +35,9 @@
 
 /* ── Left column ── */
 .hero-left {
-  min-width: 0;           /* critical: allows grid cell to not overflow */
+  min-width: 0;
+  overflow: hidden;
+  /* prevents long text from punching through right padding */
   display: flex;
   flex-direction: column;
   gap: var(--sp-5);
@@ -47,6 +53,10 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  /* Truncate gracefully if still too long */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Name */
@@ -55,6 +65,7 @@
   align-items: flex-start;
   gap: 10px;
 }
+
 .hero-accent-dot {
   display: inline-block;
   width: 6px;
@@ -63,21 +74,15 @@
   flex-shrink: 0;
   margin-top: 14px;
 }
+
 .hero-heading {
   font-family: var(--font-display);
   font-weight: 900;
-  /*
-    5.5vw scales safely across the full desktop range:
-    - 1024px → 56px, "GANAPATHI" ≈ 340px → fits in ~560px left col ✓
-    - 1280px → 70px, "GANAPATHI" ≈ 430px → fits in ~820px ✓
-    - 1536px → 84px, "GANAPATHI" ≈ 515px → fits in ~1070px ✓
-  */
   font-size: clamp(48px, 5.5vw, 96px);
   line-height: 0.9;
   letter-spacing: -0.04em;
   color: var(--text-primary);
   text-transform: uppercase;
-  /* never wrap mid-word, but allow wrapping between GMS and GANAPATHI */
   overflow-wrap: normal;
   word-break: keep-all;
 }
@@ -106,6 +111,7 @@
   gap: 20px;
   margin-top: var(--sp-5);
 }
+
 .hero-social-link {
   color: var(--text-secondary);
   display: flex;
@@ -113,6 +119,7 @@
   transition: color 150ms, transform 150ms;
   text-decoration: none;
 }
+
 .hero-social-link:hover {
   color: var(--text-primary);
   transform: translateY(-2px);
@@ -123,18 +130,21 @@
   min-width: 0;
   display: flex;
   align-items: center;
+  /* center sits the photo in the middle of the grid track,
+     which is naturally between the right viewport edge and
+     the left edge of the photo column (near the 'I' of GANAPATHI) */
   justify-content: center;
 }
 
 /*
-  The wrap uses padding-right + padding-bottom to carve out room
-  for the brutalist offset shadow without it bleeding anywhere.
+  Wrap carves out space for the brutalist offset shadow via padding,
+  so the shadow never bleeds outside the column.
 */
 .hero-photo-wrap {
   position: relative;
   width: 100%;
-  padding-right: 14px;
-  padding-bottom: 14px;
+  padding-right: 12px;
+  padding-bottom: 12px;
   box-sizing: border-box;
 }
 
@@ -173,14 +183,15 @@
   color: var(--text-tertiary);
   user-select: none;
 }
+
 .hero-initials--lg {
   font-size: 48px;
 }
 
-/* Desktop photo */
+/* Desktop photo — 4:5 portrait ratio */
 .hero-photo--desktop {
   width: 100%;
-  height: clamp(340px, 60vh, 460px);
+  aspect-ratio: 4 / 5;
   z-index: 1;
   overflow: hidden;
 }
@@ -188,8 +199,8 @@
 /* Brutalist offset shadow — contained inside wrap padding */
 .hero-photo-shadow {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 12px;
+  left: 12px;
   right: 0;
   bottom: 0;
   background: var(--accent);
@@ -209,45 +220,83 @@
 
 /* ── Responsive ── */
 
-/* Tablet: smaller right column, smaller heading */
-@media (min-width: 768px) and (max-width: 1023px) {
+/* Large desktop ≥1400px */
+@media (min-width: 1400px) {
   .hero-inner {
-    grid-template-columns: 1fr 240px;
-    padding: 0 40px;
-    gap: 32px;
-  }
-  .hero-heading {
-    font-size: clamp(40px, 5.5vw, 64px);
-  }
-  .hero-photo--desktop {
-    height: clamp(280px, 55vh, 380px);
+    grid-template-columns: 1fr 320px;
   }
 }
 
-/* Mobile: stack vertically, hide right column */
+/* Mid 900–1023px */
+@media (min-width: 900px) and (max-width: 1023px) {
+  .hero-inner {
+    grid-template-columns: 1fr 220px;
+    gap: 28px;
+  }
+}
+
+/* Tablet 768–899px */
+@media (min-width: 768px) and (max-width: 899px) {
+  .hero-inner {
+    grid-template-columns: 1fr 200px;
+    gap: 24px;
+  }
+
+  .hero-heading {
+    font-size: clamp(36px, 5vw, 56px);
+  }
+}
+
+/* Mobile ≤767px — single column, right photo hidden */
 @media (max-width: 767px) {
   .hero-inner {
-    display: flex;           /* back to flex for single-column stacking */
+    display: flex;
     flex-direction: column;
-    padding: var(--sp-5);
+    /* Equal left+right padding — same clamp value guarantees no side is cropped */
+    padding-left: clamp(16px, 5vw, 28px);
+    padding-right: clamp(16px, 5vw, 28px);
+    padding-top: 0;
+    padding-bottom: 0;
     gap: var(--sp-4);
     justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
   }
+
+  .hero-left {
+    width: 100%;
+    overflow: hidden;
+  }
+
   .hero-right {
     display: none;
   }
+
   .hero-photo--mobile {
     display: flex;
   }
+
   .hero-heading {
-    font-size: clamp(48px, 12vw, 72px);
+    font-size: clamp(32px, 8vw, 68px);
   }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    white-space: normal;
+    /* allow wrap on very narrow screens */
+    overflow: visible;
+    text-overflow: clip;
+  }
+
   .hero-intro {
     font-size: 15px;
+    max-width: 100%;
   }
+
   .hero-ctas {
     margin-top: var(--sp-4);
   }
+
   .hero-ctas .btn {
     padding: 12px 20px;
     font-size: 12px;
