@@ -218,11 +218,12 @@
 
 /* Input row */
 .chat-input-row {
-  height: 52px;
+  height: 68px;
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  padding: 0 4px 0 0;
 }
 
 .chat-input {
@@ -239,8 +240,8 @@
 .chat-input:disabled { opacity: 0.5; }
 
 .chat-send {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   background: var(--accent);
   color: var(--black);
   border: none;

@@ -78,7 +78,7 @@ export default function Hero({ onScrollTo }) {
               <span>GANAPATHI</span>
             </h1>
           </div>
-
+          
           {/* Mobile photo */}
           <div className="hero-photo hero-photo--mobile animate-child" style={{ animationDelay: '160ms' }} aria-hidden="true">
             <span className="hero-initials">GMS</span>
