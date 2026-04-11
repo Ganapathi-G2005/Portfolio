@@ -1,135 +1,177 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
+import { CARDS } from './projectCards'
 import './CylinderCarousel.css'
 
-export const CARDS = [
-  {
-    id: 1,
-    title: 'DermaGlass',
-    desc: 'Full stack AI healthcare platform for automated skin disease diagnosis - Deep Learning - Agentic reasoning.',
-    stack: ['PyTorch', 'EfficientNet', 'LangGraph', 'FastAPI'],
-    color: '#FF3B00',
-    live: 'https://dermaglass.vercel.app/',
-  },
-  {
-    id: 2,
-    title: 'Sidekick AI',
-    desc: 'Personal AI assistant - agentic architecture - Self evaluating - RAG pipeline - Tool usage.',
-    stack: ['LangGraph', 'RAG', 'FastAPI', 'OpenAI', 'Playwright', 'Tavily'],
-    color: '#FFD600',
-    live: 'https://personal-assistant-xi-steel.vercel.app/',
-  },
-  {
-    id: 3,
-    title: 'Next Ship',
-    desc: 'Something is cooking — stay tuned. Check the GitHub for early drops.',
-    stack: ['TBD'],
-    color: '#3B82F6',
-    github: 'https://github.com/Ganapathi-G2005',
-  },
-]
-
-const N = CARDS.length
+const N      = CARDS.length
 const CARD_W = 300
-const CARD_H = 400
+
+/** ms — time-based ease reads smoother than exponential lerp */
+const CAROUSEL_MS = 520
 
 function getRadius(n, w) {
   return (w / 2) / Math.tan(Math.PI / n)
 }
 
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
+}
+
+/** Which card faces the camera at this cylinder angle (same grid as snap). */
+function frontIndexFromAngle(a) {
+  const step = 360 / N
+  const nearest = Math.round(a / step) * step
+  return ((Math.round(-nearest / step) % N) + N) % N
+}
+
+/** Keep angle in (−360, 360] so numeric drift does not grow forever */
+function wrapCylinderAngle(a) {
+  return a - Math.round(a / 360) * 360
+}
+
 export default function CylinderCarousel() {
-  const [activeIdx, setActiveIdx] = useState(0)
-  const [angle, setAngle]         = useState(0)   // current rotation degrees
-  const containerRef = useRef(null)
-  const dragging = useRef(false)
-  const startX   = useRef(0)
-  const startAngle = useRef(0)
-  const momentum = useRef(0)
-  const animFrame= useRef(null)
-  const reduced  = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const [angle, setAngle] = useState(0)
+
+  const containerRef   = useRef(null)
+  const dragging       = useRef(false)
+  const startX         = useRef(0)
+  const startAngle     = useRef(0)
+  const animFrame      = useRef(null)
+  const angleRef       = useRef(0)
+
+  const reduced =
+    typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false
 
   const RADIUS = getRadius(N, CARD_W)
 
-  // Snap to nearest card
-  const snapToCard = useCallback((fromAngle) => {
-    const step = 360 / N
-    const nearest = Math.round(fromAngle / step) * step
-    setAngle(nearest)
-    const idx = ((Math.round(-nearest / step) % N) + N) % N
-    setActiveIdx(idx)
-  }, [])
+  useEffect(() => { angleRef.current = angle }, [angle])
 
-  // Lerp to target angle
-  const lerpTo = useCallback((target) => {
-    if (reduced) { setAngle(target); return }
+  const frontIdx = frontIndexFromAngle(angle)
+
+  const runAngleAnimation = useCallback((from, to) => {
+    if (reduced) {
+      const w = wrapCylinderAngle(to)
+      setAngle(w)
+      angleRef.current = w
+      return
+    }
+    if (Math.abs(to - from) < 1e-4) {
+      const w = wrapCylinderAngle(to)
+      setAngle(w)
+      angleRef.current = w
+      return
+    }
     cancelAnimationFrame(animFrame.current)
-    let current = angle
-    const step = () => {
-      current += (target - current) * 0.12
-      setAngle(current)
-      if (Math.abs(target - current) > 0.1) {
-        animFrame.current = requestAnimationFrame(step)
+    const t0 = performance.now()
+    const tick = (now) => {
+      const t = Math.min(1, (now - t0) / CAROUSEL_MS)
+      const cur = from + (to - from) * easeInOutCubic(t)
+      setAngle(cur)
+      angleRef.current = cur
+      if (t < 1) {
+        animFrame.current = requestAnimationFrame(tick)
       } else {
-        setAngle(target)
+        const w = wrapCylinderAngle(to)
+        setAngle(w)
+        angleRef.current = w
       }
     }
-    animFrame.current = requestAnimationFrame(step)
-  }, [angle, reduced])
+    animFrame.current = requestAnimationFrame(tick)
+  }, [reduced])
 
-  const rotateTo = useCallback((idx) => {
+  // ── snap to nearest card ─────────────────────────────────────────
+  const snapToCard = useCallback((fromAngle) => {
+    const step    = 360 / N
+    const nearest = Math.round(fromAngle / step) * step
+    runAngleAnimation(fromAngle, nearest)
+  }, [runAngleAnimation])
+
+  // Pick −idx·step + m·360 closest to current angle (shortest path for dots / card tap)
+  const canonicalTarget = useCallback((idx) => {
     const step = 360 / N
-    const target = -idx * step
-    lerpTo(target)
-    setActiveIdx(idx)
-  }, [lerpTo])
+    const base = -idx * step
+    const cur  = angleRef.current
+    let best = base
+    let bestAbs = Math.abs(base - cur)
+    for (let m = -3; m <= 3; m++) {
+      const t = base + m * 360
+      const d = Math.abs(t - cur)
+      if (d < bestAbs) {
+        best = t
+        bestAbs = d
+      }
+    }
+    return best
+  }, [])
 
+  // ── rotate to specific index (shortest path) ─────────────────────
+  const rotateTo = useCallback((idx) => {
+    const target = canonicalTarget(idx)
+    const from = angleRef.current
+    runAngleAnimation(from, target)
+  }, [canonicalTarget, runAngleAnimation])
+
+  // One step in carousel order (wrap: last → right = one more −step, not shortest to 0°)
   const rotateBy = useCallback((delta) => {
     const step = 360 / N
-    const newIdx = ((activeIdx + delta) % N + N) % N
-    rotateTo(newIdx)
-  }, [activeIdx, rotateTo])
+    const from = angleRef.current
+    const target = from - delta * step
+    runAngleAnimation(from, target)
+  }, [runAngleAnimation])
 
-  // Mouse drag
+  // ── mouse ────────────────────────────────────────────────────────
   const onMouseDown = (e) => {
-    dragging.current = true
-    startX.current = e.clientX
-    startAngle.current = angle
+    dragging.current   = true
+    startX.current     = e.clientX
+    startAngle.current = angleRef.current
     cancelAnimationFrame(animFrame.current)
   }
   const onMouseMove = (e) => {
     if (!dragging.current) return
-    const delta = (e.clientX - startX.current) * 0.4
-    setAngle(startAngle.current + delta)
+    const next = startAngle.current + (e.clientX - startX.current) * 0.45
+    setAngle(next)
+    angleRef.current = next
   }
-  const onMouseUp = (e) => {
+  const onMouseUp = () => {
     if (!dragging.current) return
     dragging.current = false
-    snapToCard(angle)
+    snapToCard(angleRef.current)
   }
 
-  // Touch drag
+  // ── touch ────────────────────────────────────────────────────────
   const onTouchStart = (e) => {
-    startX.current = e.touches[0].clientX
-    startAngle.current = angle
+    startX.current     = e.touches[0].clientX
+    startAngle.current = angleRef.current
     cancelAnimationFrame(animFrame.current)
   }
   const onTouchMove = (e) => {
-    const delta = (e.touches[0].clientX - startX.current) * 0.4
-    setAngle(startAngle.current + delta)
+    const next = startAngle.current + (e.touches[0].clientX - startX.current) * 0.45
+    setAngle(next)
+    angleRef.current = next
   }
-  const onTouchEnd = () => snapToCard(angle)
+  const onTouchEnd = () => snapToCard(angleRef.current)
 
+  // ── keyboard ─────────────────────────────────────────────────────
   useEffect(() => {
-    return () => cancelAnimationFrame(animFrame.current)
-  }, [])
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft')  rotateBy(-1)
+      if (e.key === 'ArrowRight') rotateBy(1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [rotateBy])
+
+  useEffect(() => () => cancelAnimationFrame(animFrame.current), [])
 
   return (
     <div className="cylinder-outer">
-      {/* Left arrow */}
+
+      {/* left arrow */}
       <button
         className="cylinder-arrow cylinder-arrow--left"
         onClick={() => rotateBy(-1)}
         aria-label="Previous project"
-        id="cylinder-prev"
       >
         ←
       </button>
@@ -155,55 +197,41 @@ export default function CylinderCarousel() {
         >
           {CARDS.map((card, i) => {
             const cardAngle = (360 / N) * i
-            const isActive  = i === activeIdx
+            const isActive  = i === frontIdx
             return (
               <div
                 key={card.id}
                 className={`cylinder-card${isActive ? ' cylinder-card--active' : ''}`}
                 style={{
-                  transform: `rotateY(${cardAngle}deg) translateZ(${RADIUS}px)`,
+                  transform    : `rotateY(${cardAngle}deg) translateZ(${RADIUS}px)`,
                   '--card-color': card.color,
-                  boxShadow: isActive
-                    ? `8px 8px 0 ${card.color}`
-                    : 'none',
+                  boxShadow    : isActive ? `8px 8px 0 ${card.color}` : 'none',
                 }}
                 onClick={() => !dragging.current && rotateTo(i)}
               >
-                {/* Top accent strip */}
+                {/* top accent strip */}
                 <div className="ccard-strip" style={{ background: card.color }} />
 
-                {/* Card number */}
+                {/* card number */}
                 <span className="ccard-num">
-                  {String(card.id).padStart(2,'0')} / {String(N).padStart(2,'0')}
+                  {String(card.id).padStart(2, '0')} / {String(N).padStart(2, '0')}
                 </span>
 
-                {/* Title */}
+                {/* title */}
                 <h3 className="ccard-title">{card.title}</h3>
 
-                {/* Stack badges */}
+                {/* stack badges */}
                 <div className="ccard-stack">
                   {card.stack.map(s => (
                     <span key={s} className="ccard-badge">{s}</span>
                   ))}
                 </div>
 
-                {/* Description */}
+                {/* description */}
                 <p className="ccard-desc">{card.desc}</p>
 
-                {/* Links */}
+                {/* links */}
                 <div className="ccard-links">
-                  {card.live && (
-                    <a
-                      href={card.live}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ccard-link"
-                      onClick={e => e.stopPropagation()}
-                      aria-label={`${card.title} — live demo`}
-                    >
-                      LIVE ↗
-                    </a>
-                  )}
                   {card.github && (
                     <a
                       href={card.github}
@@ -216,6 +244,18 @@ export default function CylinderCarousel() {
                       GITHUB ↗
                     </a>
                   )}
+                  {card.live && (
+                    <a
+                      href={card.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ccard-link"
+                      onClick={e => e.stopPropagation()}
+                      aria-label={`${card.title} — live demo`}
+                    >
+                      LIVE ↗
+                    </a>
+                  )}
                 </div>
               </div>
             )
@@ -223,25 +263,25 @@ export default function CylinderCarousel() {
         </div>
       </div>
 
-      {/* Right arrow */}
+      {/* right arrow */}
       <button
         className="cylinder-arrow cylinder-arrow--right"
         onClick={() => rotateBy(1)}
         aria-label="Next project"
-        id="cylinder-next"
       >
         →
       </button>
 
-      {/* Dot indicators */}
+      {/* dot indicators — active dot uses card's own accent color */}
       <div className="cylinder-dots" role="tablist" aria-label="Project cards">
         {CARDS.map((card, i) => (
           <button
             key={card.id}
-            className={`cylinder-dot${i === activeIdx ? ' cylinder-dot--active' : ''}`}
+            className={`cylinder-dot${i === frontIdx ? ' cylinder-dot--active' : ''}`}
+            style={i === frontIdx ? { background: card.color, borderColor: card.color } : {}}
             onClick={() => rotateTo(i)}
             role="tab"
-            aria-selected={i === activeIdx}
+            aria-selected={i === frontIdx}
             aria-label={`Project ${i + 1}: ${card.title}`}
           />
         ))}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import CylinderCarousel, { CARDS } from '../components/CylinderCarousel'
+import CylinderCarousel from '../components/CylinderCarousel'
+import { CARDS } from '../components/projectCards'
 import './Projects.css'
 
 /* ── Mobile scroll carousel ── */

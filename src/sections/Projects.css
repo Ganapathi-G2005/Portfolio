@@ -101,6 +101,8 @@
   flex-direction: column;
   gap: 14px;
   box-sizing: border-box;
+  /* Same reserved height for every project so the panel does not jump when the active card changes */
+  min-height: 280px;
 }
 .mobile-project-details-strip {
   height: 6px;
@@ -108,11 +110,11 @@
   border-radius: 0;
 }
 .mobile-project-details-desc {
-  display: block;
-  overflow: visible;
-  -webkit-line-clamp: unset;
-  line-clamp: unset;
-  -webkit-box-orient: unset;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
   flex: 0 1 auto;
   margin: 0;
   text-align: left;

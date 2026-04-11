@@ -28,10 +28,6 @@ export default function Chat() {
           <p className="chat-subtext">
             Knows my projects, my stack, how I think. Ask it anything — it's actually me, kind of.
           </p>
-          <div className="chat-status-pill">
-            <span className="status-pulse" aria-hidden="true" />
-            <span className="status-text">GANNU_AI · ONLINE</span>
-          </div>
           <p className="chat-poweredby">POWERED BY GPT-4.1-NANO</p>
         </div>
 

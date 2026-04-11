@@ -20,7 +20,6 @@ const SKILLS_ROW1 = [
 ]
 
 const SKILLS_ROW2 = [
-  
   { label: 'Antigravity',   cat: 'Tools' },
   { label: 'Claude code', cat: 'Tools' },
   { label: 'Cursor', cat: 'Tools' },
@@ -29,7 +28,7 @@ const SKILLS_ROW2 = [
   { label: 'Docker',        cat: 'Tools' },
   { label: 'Vercel',        cat: 'Tools' },
   { label: 'Gradio',        cat: 'Tools' },
-  { Label: 'EmailJS', cat: 'Tools' },
+  { label: 'EmailJS',       cat: 'Tools' },
   { label: 'Playwright',    cat: 'Tools' },
   { label: 'Tavily',        cat: 'Tools' },
 ]

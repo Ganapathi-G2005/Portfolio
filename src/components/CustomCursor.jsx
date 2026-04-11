@@ -56,6 +56,9 @@ export default function CustomCursor() {
     const onEnterText = (e) => {
       if (!e.target || !e.target.tagName) return
       const el = e.target
+      if (typeof el.closest === 'function' && el.closest('a, button, [role="button"], [role="tab"]')) {
+        return
+      }
       const tag = el.tagName
       if (tag === 'P' || tag === 'SPAN' || tag === 'H1' || tag === 'H2' ||
           tag === 'H3' || tag === 'LI' || tag === 'INPUT' || tag === 'TEXTAREA') {

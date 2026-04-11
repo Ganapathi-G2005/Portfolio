@@ -113,6 +113,16 @@ export default function Contact() {
               </a>
             ))}
           </div>
+
+          <a
+            className="btn btn-secondary"
+            href="/Resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            id="contact-resume-view"
+          >
+            VIEW RESUME ↗
+          </a>
         </div>
 
         {/* Right column — form */}

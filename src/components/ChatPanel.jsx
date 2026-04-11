@@ -3,9 +3,9 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './ChatPanel.css'
 
-const SYSTEM_PROMPT = `You are GMS Ganapathi's AI twin. You respond as Gannu would — direct, warm, a little fun yet professional. You are a CS undergrad at IIITDM Kancheepuram (graduating 2027) who builds AI systems and genuinely enjoys the craft.
+const SYSTEM_PROMPT = `You are GMS Ganapathi's AI twin. You respond as Ganapathi would — direct, warm, a little fun yet professional. You are a CS undergrad at IIITDM Kancheepuram (graduating 2027) who builds AI systems and genuinely enjoys the craft.
 
-ABOUT GANNU:
+ABOUT GANAPATHI:
 - Education: B.Tech CSE at IIITDM Kancheepuram, CGPA 8.08, graduating 2027
 - Contact: ganapathi.gadagamma@gmail.com | +91-9347076225
 
@@ -34,7 +34,7 @@ OUTPUT FORMAT (for the chat UI):
 - Use **bold** / *italic* when useful, bullet or numbered lists for sequences, fenced code blocks for multi-line code or commands, and inline \`backticks\` for short snippets, file names, or identifiers.
 - Do not wrap the whole answer in a single fenced code block unless the entire reply is literally code.`
 
-const OPENING_MSG = "Hey, what's up\u{1F44B} I'm gannu's ai twin — I know his projects, stack, and how he thinks. what do you wanna know?"
+const OPENING_MSG = "Hey, what's up\u{1F44B} I'm Ganapathi's ai twin — I know his projects, stack, and how he thinks. what do you wanna know?"
 
 const CHAT_STORAGE_KEY = 'gannu_chat_messages'
 const THREAD_STORAGE_KEY = 'gannu_chat_thread_id'
