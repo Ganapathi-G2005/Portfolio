@@ -10,13 +10,16 @@ import Projects            from './sections/Projects'
 import Chat                from './sections/Chat'
 import Contact             from './sections/Contact'
 
-import { useScrollNav }    from './hooks/useScrollNav'
+import { useScrollNav }           from './hooks/useScrollNav'
+import { useViewportHeightCssVar } from './hooks/useViewportHeightCssVar'
 
 const SECTIONS = ['hero', 'skills', 'projects', 'chat', 'contact']
 
 export default function App() {
   const containerRef    = useRef(null)
   const [activeSection, setActiveSection] = useState('hero')
+
+  useViewportHeightCssVar()
 
   // Keyboard arrow navigation
   useScrollNav(containerRef)

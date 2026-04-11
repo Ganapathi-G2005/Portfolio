@@ -1,14 +1,26 @@
+/* Same element as .section — do not set height here; it would override
+   global .section viewport height and break vertical constraints. */
 .contact {
   background: var(--bg);
   padding-top: var(--nav-h);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
+/* Grid + minmax(0,1fr) lets the form column shrink below content (flex row often cannot). */
 .contact-inner {
-  display: flex;
-  align-items: center;
+  display: grid;
+  flex: 1 1 0%;
   height: 100%;
+  min-height: 0;
+  min-width: 0;
   padding: 40px 80px;
   gap: var(--sp-8);
+  grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
 }
 
 /* Entrance */
@@ -21,10 +33,14 @@
 
 /* Left */
 .contact-left {
-  flex: 0 0 40%;
   display: flex;
   flex-direction: column;
   gap: var(--sp-5);
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .contact-heading {
@@ -83,10 +99,13 @@
   font-size: 12px;
 }
 
-/* Right */
+/* Right — grid cell + minmax(0,1fr) supplies the vertical bound; flex column fills it */
 .contact-right {
-  flex: 1;
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Form */
@@ -98,12 +117,26 @@
   flex-direction: column;
   gap: var(--sp-4);
   border-radius: 0;
+  flex: 1 1 0%;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  overflow-y: auto;
 }
 
 .field-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Message block: absorbs remaining form height; textarea can shrink below intrinsic size */
+.field-group--grow {
+  flex: 1 1 0%;
+  min-height: 0;
+  flex-shrink: 1;
+  overflow: hidden;
 }
 
 .field-label {
@@ -132,12 +165,28 @@
 .field-input:disabled { opacity: 0.5; }
 
 .field-textarea {
-  min-height: 120px;
   resize: vertical;
   font-family: var(--font-body);
 }
 
+.field-group--grow .field-textarea {
+  flex: 1 1 0%;
+  min-height: 0;
+  width: 100%;
+  max-height: 100%;
+}
+
+/* height:0 + flex-grow is the reliable way to get <textarea> to shrink in a flex column */
+@media (min-width: 768px) {
+  .field-group--grow .field-textarea {
+    height: 0;
+    max-height: none;
+    min-height: 48px;
+  }
+}
+
 .form-error {
+  flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--accent);
@@ -146,6 +195,7 @@
 
 /* Submit */
 .contact-submit {
+  flex-shrink: 0;
   width: 100%;
   height: 52px;
   background: var(--accent);
@@ -188,10 +238,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  min-height: 300px;
+  flex: 1;
+  min-height: 0;
   align-items: center;
   justify-content: center;
   text-align: center;
+  overflow-y: auto;
 }
 .success-title {
   font-family: var(--font-display);
@@ -209,17 +261,45 @@
 /* Responsive */
 @media (max-width: 767px) {
   .contact-inner {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
     padding: var(--sp-4) var(--sp-5);
     gap: var(--sp-4);
     overflow-y: auto;
-    align-items: flex-start;
   }
-  .contact-left { flex: none; width: 100%; gap: var(--sp-3); }
+  .contact-left {
+    flex: none;
+    width: 100%;
+    gap: var(--sp-3);
+    justify-content: flex-start;
+  }
   .contact-h1 { font-size: clamp(40px, 10vw, 64px); }
   .contact-form { padding: 24px; }
   .contact-socials { display: none; }
-  .contact-right { width: 100%; }
+  .contact-right {
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .contact-form,
+  .contact-success {
+    flex: none;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .field-group--grow {
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .field-group--grow .field-textarea {
+    flex: none;
+    min-height: 120px;
+    max-height: none;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {

@@ -76,7 +76,8 @@
 .chat-panel-wrap {
   flex: 1;
   min-width: 0;
-  max-height: calc(100vh - var(--nav-h) - 80px);
+  max-height: calc(100dvh - var(--nav-h) - 80px);
+  max-height: calc(var(--vh) * 100 - var(--nav-h) - 80px);
 }
 
 /* Responsive */

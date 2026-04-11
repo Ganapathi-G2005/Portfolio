@@ -155,12 +155,13 @@ export default function Contact() {
                 />
               </div>
 
-              <div className="field-group">
+              <div className="field-group field-group--grow">
                 <label className="field-label" htmlFor="contact-message">MESSAGE</label>
                 <textarea
                   id="contact-message"
                   name="message"
                   className="field-input field-textarea"
+                  rows={2}
                   placeholder="tell me what you're building or what you need"
                   required
                   disabled={status === 'loading'}
