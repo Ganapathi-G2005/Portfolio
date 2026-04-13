@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+const heroLogo = '/logo.jpeg'
 import './Hero.css'
 
 const SOCIAL_LINKS = [
@@ -81,7 +82,7 @@ export default function Hero({ onScrollTo }) {
           
           {/* Mobile photo */}
           <div className="hero-photo hero-photo--mobile animate-child" style={{ animationDelay: '160ms' }}>
-            <img src="/Logo.png" alt="GMS Ganapathi" draggable="false" />
+            <img src={heroLogo} alt="GMS Ganapathi" draggable="false" />
           </div>
 
           {/* Intro text */}
@@ -129,7 +130,7 @@ export default function Hero({ onScrollTo }) {
         <div className="hero-right animate-child" style={{ animationDelay: '120ms' }}>
           <div className="hero-photo-wrap">
             <div className="hero-photo hero-photo--desktop" aria-label="GMS Ganapathi">
-              <img src="/Logo.png" alt="GMS Ganapathi" draggable="false" />
+              <img src={heroLogo} alt="GMS Ganapathi" draggable="false" />
             </div>
             <div className="hero-photo-shadow" aria-hidden="true" />
           </div>
