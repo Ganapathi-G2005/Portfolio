@@ -150,7 +150,10 @@ export default function ChatPanel({ active }) {
   const sendMessage = useCallback(async (userText) => {
     if (!userText.trim() || loading || replyStreamingRef.current) return
 
-    const apiKey = import.meta.env.VITE_GROQ_API_KEY?.trim()
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY
+      ?.trim()
+      .replace(/^Bearer\s+/i, '')
+      .replace(/^['"]|['"]$/g, '')
 
     const userMsg = { role: 'user', content: userText }
     const newMessages = [...messages, userMsg]
@@ -166,10 +169,10 @@ export default function ChatPanel({ active }) {
     setReplyStreaming(true)
 
     try {
-      if (!apiKey) {
+      if (!apiKey || !apiKey.startsWith('gsk_')) {
         setMessages(prev => [
           ...prev.slice(0, -1),
-          { role: 'assistant', content: "\u{1F6A7} API key not configured yet — add VITE_GROQ_API_KEY to your .env file to chat with me!" }
+          { role: 'assistant', content: "\u{1F6A7} Groq API key is missing or invalid — set VITE_GROQ_API_KEY to a valid key beginning with gsk_." }
         ])
         return
       }
