@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const SECTIONS = ['hero', 'skills', 'projects', 'chat', 'contact']
+const SECTIONS = ['hero', 'skills', 'projects', 'experience', 'chat', 'contact']
 
 /**
  * Enables Up/Down arrow key navigation across scroll-snap sections.

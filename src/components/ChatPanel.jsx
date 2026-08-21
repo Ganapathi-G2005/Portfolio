@@ -98,7 +98,7 @@ export default function ChatPanel({ active }) {
   })
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  /** True while OpenAI stream is in progress (UI only; ref guards sendMessage without stale deps). */
+  /** True while the Groq stream is in progress (UI only; ref guards sendMessage without stale deps). */
   const [replyStreaming, setReplyStreaming] = useState(false)
   const replyStreamingRef = useRef(false)
   const [openedOnce, setOpenedOnce] = useState(false)
@@ -150,7 +150,7 @@ export default function ChatPanel({ active }) {
   const sendMessage = useCallback(async (userText) => {
     if (!userText.trim() || loading || replyStreamingRef.current) return
 
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY
 
     const userMsg = { role: 'user', content: userText }
     const newMessages = [...messages, userMsg]
@@ -169,19 +169,19 @@ export default function ChatPanel({ active }) {
       if (!apiKey) {
         setMessages(prev => [
           ...prev.slice(0, -1),
-          { role: 'assistant', content: "\u{1F6A7} API key not configured yet — add VITE_OPENAI_API_KEY to your .env file to chat with me!" }
+          { role: 'assistant', content: "\u{1F6A7} API key not configured yet — add VITE_GROQ_API_KEY to your .env file to chat with me!" }
         ])
         return
       }
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4.1-nano',
+          model: 'openai/gpt-oss-20b',
           messages: [
             { role: 'system', content: `${SYSTEM_PROMPT}\n\nPersistent thread ID: ${threadId}` },
             ...newMessages,
@@ -217,7 +217,9 @@ export default function ChatPanel({ active }) {
               updated[updated.length - 1] = { role: 'assistant', content: accum }
               return updated
             })
-          } catch { }
+          } catch {
+            continue
+          }
         }
       }
     } catch (err) {
@@ -262,7 +264,7 @@ export default function ChatPanel({ active }) {
           >
             New chat
           </button>
-          <span className="chat-powered">POWERED BY GPT-4.1-NANO</span>
+          <span className="chat-powered">POWERED BY GROQ · GPT-OSS-20B</span>
         </div>
       </div>
 

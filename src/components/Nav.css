@@ -75,6 +75,21 @@
   color: var(--text-primary);
 }
 
+.nav-link:focus,
+.nav-logo:focus,
+.nav-cta:focus,
+.nav-overlay-link:focus {
+  outline: none;
+}
+
+.nav-link:focus-visible,
+.nav-logo:focus-visible,
+.nav-cta:focus-visible,
+.nav-overlay-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
 /* CTA */
 .nav-cta {
   font-family: var(--font-mono);

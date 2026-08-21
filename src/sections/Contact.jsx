@@ -65,6 +65,23 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    const form = formRef.current
+    if (!form) return
+
+    const requiredFields = Array.from(form.elements).filter(field => field.required)
+    const emptyField = requiredFields.find(field => !field.value.trim())
+    if (emptyField) {
+      setErrMsg('please fill in all fields before sending.')
+      emptyField.focus()
+      return
+    }
+
+    if (!form.checkValidity()) {
+      form.reportValidity()
+      return
+    }
+
     setStatus('loading')
     setErrMsg('')
 
@@ -86,7 +103,7 @@ export default function Contact() {
       <div className="contact-inner">
         {/* Left column */}
         <div className="contact-left animate-child">
-          <span className="section-badge">[ 005 / CONTACT ]</span>
+          <span className="section-badge">[ 006 / CONTACT ]</span>
           <div className="contact-heading">
             <span className="contact-h1">LET'S</span>
             <br />

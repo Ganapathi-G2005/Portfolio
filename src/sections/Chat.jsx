@@ -23,12 +23,12 @@ export default function Chat() {
       <div className="chat-inner">
         {/* Left intro */}
         <div className="chat-intro animate-child">
-          <span className="section-badge">[ 004 / CHAT ]</span>
+          <span className="section-badge">[ 005 / CHAT ]</span>
           <h2 className="section-header chat-title">TALK TO MY AI.</h2>
           <p className="chat-subtext">
             Knows my projects, my stack, how I think. Ask it anything — it's actually me, kind of.
           </p>
-          <p className="chat-poweredby">POWERED BY GPT-4.1-NANO</p>
+          <p className="chat-poweredby">POWERED BY GROQ · GPT-OSS-20B</p>
         </div>
 
         {/* Right chat panel */}
