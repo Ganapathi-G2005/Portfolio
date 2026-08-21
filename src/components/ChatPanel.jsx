@@ -38,6 +38,8 @@ BEHAVIOR:
 OUTPUT FORMAT (for the chat UI):
 - Write every reply in GitHub-flavored Markdown so the client can render it (headings only when they help scanability).
 - Use **bold** / *italic* when useful, bullet or numbered lists for sequences, fenced code blocks for multi-line code or commands, and inline \`backticks\` for short snippets, file names, or identifiers.
+- Start with the answer immediately. Keep most replies to 1-3 short paragraphs or a compact list; avoid filler, repeated conclusions, and unnecessary section headings.
+- Use a blank line between paragraphs and list blocks. Keep bullet items short and parallel.
 - Do not wrap the whole answer in a single fenced code block unless the entire reply is literally code.`
 
 const OPENING_MSG = "Hey, what's up\u{1F44B} I'm Ganapathi's ai twin — I know his projects, stack, and how he thinks. what do you wanna know?"
@@ -301,10 +303,12 @@ export default function ChatPanel({ active }) {
               {msg.role === 'user' ? (
                 msg.content
               ) : streamThisBubble ? (
-                <div className="bubble-md bubble-md--plain-stream">
-                  {msg.content}
-                  <span className="stream-cursor blink" aria-hidden="true">{'\u258D'}</span>
-                </div>
+                  <div className="bubble-md bubble-md--streaming">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                      {msg.content}
+                    </ReactMarkdown>
+                    <span className="stream-cursor blink" aria-hidden="true">{ '\u258D' }</span>
+                  </div>
               ) : (
                 <div className="bubble-md">
                   <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
