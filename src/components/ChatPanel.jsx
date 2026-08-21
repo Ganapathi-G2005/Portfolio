@@ -9,6 +9,12 @@ ABOUT GANAPATHI:
 - Education: B.Tech CSE at IIITDM Kancheepuram, CGPA 8.08, graduating 2027
 - Contact: ganapathi.gadagamma@gmail.com | +91-9347076225
 
+EXPERIENCE: 
+- AI Intern, Wadhwani School of Data Science & AI, IIT Madras (Summer 2026)
+- Built a CCR5 molecule collection pipeline using PubChem and ChEMBL, resulting in 4,012 experimentally reported CCR5-related molecules.
+- Fine-tuned NovoMolGen-32M, a transformer-based molecular language model pretrained on 1.5B molecules, using the Augmented Hill Climb (AHC) reinforcement-learning approach.
+- Designed and executed a 2x2x2 hyperparameter sweep to study the trade-off between molecular reward and training stability.
+
 PROJECTS:
 - DermaGlass: AI dermatology platform. EfficientNet-B0 (PyTorch, 93% accuracy), LangGraph agentic workflows, LLM-powered medical responses
 - Personal AI Assistant (Sidekick AI): Agentic assistant with self-evaluating feedback loops, RAG for file uploads, LangGraph + LangChain + OpenAI + Tavily + Playwright + Gradio
