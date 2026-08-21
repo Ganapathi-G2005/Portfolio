@@ -150,7 +150,7 @@ export default function ChatPanel({ active }) {
   const sendMessage = useCallback(async (userText) => {
     if (!userText.trim() || loading || replyStreamingRef.current) return
 
-    const apiKey = import.meta.env.VITE_GROQ_API_KEY
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY?.trim()
 
     const userMsg = { role: 'user', content: userText }
     const newMessages = [...messages, userMsg]
@@ -192,7 +192,11 @@ export default function ChatPanel({ active }) {
         }),
       })
 
-      if (!response.ok) throw new Error(`API error: ${response.status}`)
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => null)
+        const errorMessage = errorBody?.error?.message || `API error: ${response.status}`
+        throw new Error(errorMessage)
+      }
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
